@@ -75,7 +75,7 @@ export function CreateListModal({ open, onOpenChange, onListCreated }: CreateLis
           </div>
 
           {/* Buttons */}
-          <div className="flex items-center gap-3 pt-4">
+          <div className="flex flex-col sm:flex-row items-center gap-3 pt-4">
             <Button
               variant="outline"
               className="flex-1 border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] hover:border-[#d0d5dd] bg-transparent"

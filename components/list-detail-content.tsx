@@ -19,7 +19,7 @@ import { EmptyListState } from "./empty-list-state";
 import Image from "next/image";
 import Avatar1 from "@/public/Avatar.png";
 import US from "@/public/US.png";
-// Mock data for records
+
 const mockRecords = [
   {
     id: 1,
@@ -82,7 +82,7 @@ interface ListDetailContentProps {
 export function ListDetailContent({ listId }: ListDetailContentProps) {
   const [isAddRecordsModalOpen, setIsAddRecordsModalOpen] = useState(false);
   const [records, setRecords] = useState(mockRecords);
-  const [showEmptyState, setShowEmptyState] = useState(false); // Set to true to show empty state
+  const [showEmptyState, setShowEmptyState] = useState(false);
 
   const handleAddRecords = (selectedRecords: any[]) => {
     setRecords([...records, ...selectedRecords]);
@@ -98,10 +98,9 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
 
   return (
     <div className="space-y-6">
-      {/* Search, Filter and Add Records */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4 flex-1">
-          <div className="relative max-w-md">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4 flex-1 min-w-[250px]">
+          <div className="relative max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#667085] w-4 h-4" />
             <Input
               placeholder="Search"
@@ -134,145 +133,86 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
         </div>
       </div>
 
-      {/* Records Table */}
-      <div className="bg-white rounded-lg border border-[#eaecf0] overflow-hidden">
-        {/* Table Header */}
-        <div className="border-b border-[#eaecf0] bg-[#f9fafb] px-6 py-3">
-          <div className="grid grid-cols-12 gap-4 items-center text-xs font-medium text-[#667085] uppercase tracking-wide">
+      <div className="bg-white rounded-lg border border-[#eaecf0]">
+        <div className="border-b border-[#eaecf0] bg-[#f9fafb] px-6 py-3 hidden md:grid grid-cols-12 gap-4 items-center text-xs font-medium text-[#667085] uppercase tracking-wide">
             <div className="col-span-1">
               <Checkbox className="border-[#d0d5dd]" />
             </div>
-            <div className="col-span-3 flex items-center gap-1">
-              Name
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-                />
-              </svg>
-            </div>
-            <div className="col-span-3 flex items-center gap-1">
-              Email address
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-                />
-              </svg>
-            </div>
-            <div className="col-span-2 flex items-center gap-1">
-              Country
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-                />
-              </svg>
-            </div>
+            <div className="col-span-3 flex items-center gap-1">Name</div>
+            <div className="col-span-3 flex items-center gap-1">Email address</div>
+            <div className="col-span-2 flex items-center gap-1">Country</div>
             <div className="col-span-2">URL/Links</div>
             <div className="col-span-1"></div>
-          </div>
         </div>
 
-        {/* Table Body */}
         <div className="divide-y divide-[#eaecf0]">
           {records.map((record) => (
             <div
               key={record.id}
               className="px-6 py-4 hover:bg-[#f9fafb] transition-colors"
             >
-              <div className="grid grid-cols-12 gap-4 items-center">
-                <div className="col-span-1">
-                  <Checkbox className="border-[#d0d5dd]" />
-                </div>
-                <div className="col-span-3 flex items-center gap-3">
-                  <Image
-                    src={record.avatar || "/placeholder.svg"}
-                    alt={record.name}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
-                  <div>
-                    <div className="text-sm font-medium text-[#101828]">
-                      {record.name}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-y-3 md:gap-4 md:items-center">
+                <div className="flex justify-between items-center md:col-span-4">
+                    <div className="flex items-center gap-3">
+                        <Checkbox className="border-[#d0d5dd]" />
+                        <Image
+                            src={record.avatar || "/placeholder.svg"}
+                            alt={record.name}
+                            width={32}
+                            height={32}
+                            className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <div>
+                            <div className="text-sm font-medium text-[#101828]">
+                            {record.name}
+                            </div>
+                            <div className="text-sm text-[#667085]">
+                            {record.username}
+                            </div>
+                        </div>
                     </div>
-                    <div className="text-sm text-[#667085]">
-                      {record.username}
+                </div>
+
+                <div className="md:col-span-3">
+                    <div className="flex items-center gap-2 md:block">
+                        <span className="md:hidden text-xs font-medium text-[#667085] uppercase tracking-wide">Email:</span>
+                        <span className="text-sm text-[#475467]">{record.email}</span>
                     </div>
-                  </div>
                 </div>
-                <div className="col-span-3">
-                  <span className="text-sm text-[#475467]">{record.email}</span>
+
+                <div className="md:col-span-2">
+                    <div className="flex items-center gap-2 md:block">
+                        <span className="md:hidden text-xs font-medium text-[#667085] uppercase tracking-wide">Country:</span>
+                        <div className="flex items-center gap-2">
+                            <Image
+                                src={US}
+                                alt="US Flag"
+                                className="w-6 h-4 rounded-sm object-cover"
+                            />
+                            <span className="text-sm text-[#475467]">
+                                {record.country}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div className="col-span-2 flex items-center gap-2">
-                  <Image
-                    src={US}
-                    alt="US Flag"
-                    className="w-6 h-4 rounded-sm object-cover"
-                  />
-                  <span className="text-sm text-[#475467]">
-                    {record.country}
-                  </span>
+
+                <div className="md:col-span-2">
+                    <span className="md:hidden text-xs font-medium text-[#667085] uppercase tracking-wide">URL/Links:</span>
+                    <div className="flex items-center gap-2">
+                        {record.socialLinks.website && (
+                            <Button variant="ghost" size="sm" className="p-1 h-6 w-6 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><LinkIcon className="w-3 h-3" /></Button>
+                        )}
+                        {record.socialLinks.instagram && (
+                            <Button variant="ghost" size="sm" className="p-1 h-6 w-6 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><Instagram className="w-3 h-3" /></Button>
+                        )}
+                        {record.socialLinks.spotify && (
+                            <Button variant="ghost" size="sm" className="p-1 h-6 w-6 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><Spotify className="w-3 h-3" /></Button>
+                        )}
+                        <Button variant="ghost" size="sm" className="p-1 h-6 w-6 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><Plus className="w-3 h-3" /></Button>
+                    </div>
                 </div>
-                <div className="col-span-2 flex items-center gap-2">
-                  {record.socialLinks.website && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 h-6 w-6 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                    >
-                      <LinkIcon className="w-3 h-3" />
-                    </Button>
-                  )}
-                  {record.socialLinks.instagram && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 h-6 w-6 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                    >
-                      <Instagram className="w-3 h-3" />
-                    </Button>
-                  )}
-                  {record.socialLinks.spotify && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 h-6 w-6 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                    >
-                      <Spotify className="w-3 h-3" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-6 w-6 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-                <div className="col-span-1">
+
+                <div className="md:col-span-1 flex justify-end">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -288,7 +228,7 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="text-sm text-[#344054]">
           Total Records <span className="font-medium">5</span> • Showing per
           page{" "}

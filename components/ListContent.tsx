@@ -57,7 +57,6 @@ export function ListsContent() {
     setListsData([newList, ...listsData])
     setIsCreateModalOpen(false)
 
-    // Show success toast
     toast({
       title: "New List Created",
       description: "Your new list has been successfully created. Start adding prospects to it now.",
@@ -67,9 +66,8 @@ export function ListsContent() {
 
   return (
     <div className="space-y-6">
-      {/* Search and Create Button */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="relative flex-1 min-w-[250px] max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#667085] w-4 h-4" />
           <Input
             placeholder="Search"
@@ -85,11 +83,8 @@ export function ListsContent() {
         </Button>
       </div>
 
-      {/* Lists Table */}
-      <div className="bg-white rounded-lg border border-[#eaecf0] overflow-hidden">
-        {/* Table Header */}
-        <div className="border-b border-[#eaecf0] bg-[#f9fafb] px-6 py-3">
-          <div className="grid grid-cols-12 gap-4 items-center text-xs font-medium text-[#667085] uppercase tracking-wide">
+      <div className="bg-white rounded-lg border border-[#eaecf0]">
+        <div className="border-b border-[#eaecf0] bg-[#f9fafb] px-6 py-3 hidden md:grid grid-cols-12 gap-4 items-center text-xs font-medium text-[#667085] uppercase tracking-wide">
             <div className="col-span-1">
               <Checkbox className="border-[#d0d5dd]" />
             </div>
@@ -113,36 +108,48 @@ export function ListsContent() {
             </div>
             <div className="col-span-2">Last Modified</div>
             <div className="col-span-1"></div>
-          </div>
         </div>
 
-        {/* Table Body */}
         <div className="divide-y divide-[#eaecf0]">
           {listsData.map((list) => (
             <div key={list.id} className="px-6 py-4 hover:bg-[#f9fafb] transition-colors">
-              <div className="grid grid-cols-12 gap-4 items-center">
-                <div className="col-span-1">
-                  <Checkbox className="border-[#d0d5dd]" />
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-y-3 md:gap-4 md:items-center">
+                
+                <div className="flex justify-between items-center md:col-span-5">
+                  <div className="flex items-center gap-3">
+                    <Checkbox className="border-[#d0d5dd]" />
+                    <Folder className="w-5 h-5 text-[#667085]" />
+                    <Link
+                      href={`/Lists/${list.id}`}
+                      className="text-sm font-medium text-[#101828] hover:text-[#7f56d9] transition-colors cursor-pointer"
+                    >
+                      {list.name}
+                    </Link>
+                  </div>
                 </div>
-                <div className="col-span-4 flex items-center gap-3">
-                  <Folder className="w-5 h-5 text-[#667085]" />
-                  <Link
-                    href={`/Lists/${list.id}`}
-                    className="text-sm font-medium text-[#101828] hover:text-[#7f56d9] transition-colors cursor-pointer"
-                  >
-                    {list.name}
-                  </Link>
+
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-2 md:block">
+                    <span className="md:hidden text-xs font-medium text-[#667085] uppercase tracking-wide">Records:</span>
+                    <span className="text-sm text-[#475467]">{list.records.toLocaleString()}</span>
+                  </div>
                 </div>
-                <div className="col-span-2">
-                  <span className="text-sm text-[#475467]">{list.records.toLocaleString()}</span>
+
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-2 md:block">
+                    <span className="md:hidden text-xs font-medium text-[#667085] uppercase tracking-wide">Created By:</span>
+                    <span className="text-sm text-[#475467]">{list.createdBy}</span>
+                  </div>
                 </div>
-                <div className="col-span-2">
-                  <span className="text-sm text-[#475467]">{list.createdBy}</span>
+
+                <div className="md:col-span-2">
+                  <div className="flex items-center gap-2 md:block">
+                    <span className="md:hidden text-xs font-medium text-[#667085] uppercase tracking-wide">Last Modified:</span>
+                    <span className="text-sm text-[#667085]">{list.lastModified}</span>
+                  </div>
                 </div>
-                <div className="col-span-2">
-                  <span className="text-sm text-[#667085]">{list.lastModified}</span>
-                </div>
-                <div className="col-span-1 flex items-center gap-2">
+
+                <div className="md:col-span-1 flex items-center justify-start md:justify-end gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
