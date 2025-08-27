@@ -1,0 +1,54 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Info, ArrowUp } from "lucide-react"
+
+interface ResultsLimitInputProps {
+  resultsLimit: string
+  setResultsLimit: (limit: string) => void
+}
+
+export function ResultsLimitInput({ resultsLimit, setResultsLimit }: ResultsLimitInputProps) {
+  const [showTooltip, setShowTooltip] = useState(false)
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative">
+        <Input
+          type="text"
+          placeholder="Results Limit"
+          value={resultsLimit}
+          onChange={(e) => setResultsLimit(e.target.value)}
+          className="w-36 h-10 px-3 text-sm border border-input focus:border-purple-500 focus:ring-purple-500 rounded-lg pr-8"
+        />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 p-0 hover:bg-transparent"
+          onMouseEnter={() => setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+        >
+          <Info className="w-4 h-4 text-gray-400" />
+        </Button>
+
+        {/* Tooltip */}
+        {showTooltip && (
+          <div className="absolute bottom-full right-0 mb-2 w-80 bg-gray-900 text-white text-sm rounded-lg p-4 shadow-lg z-50">
+            <div className="font-semibold mb-2">Results Limit</div>
+            <div className="text-gray-300 leading-relaxed">
+              Credit Limit controls the number of results generated in a single search. You can set any limit between 1
+              and 500 results for each specific search, ensuring that you don't waste credits on unnecessary results.
+            </div>
+            {/* Tooltip arrow */}
+            <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
+          </div>
+        )}
+      </div>
+      <Button size="sm" className="bg-[#7F56D9] hover:bg-[#7F56D9] cursor-pointer text-white rounded-full w-10 h-10 p-0">
+        <ArrowUp className="w-4 h-4" />
+      </Button>
+    </div>
+  )
+}
