@@ -113,20 +113,20 @@ export function FilterModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl w-full max-w-4xl h-[600px] flex overflow-hidden">
+    <div className="fixed inset-0 backdrop-blur-sm bg-white/5 flex justify-center z-50 p-4 pt-12">
+     <div className="bg-white rounded-2xl shadow-2xl shadow-gray-500/30 w-full max-w-md md:max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden">
+
         {/* Left Sidebar */}
-        <div className="w-64 bg-gray-50 border-r border-gray-200 p-4">
-          <div className="space-y-2">
+        <div className="w-full md:w-64 bg-gray-50 border-b md:border-r border-gray-200 p-4">
+          <div className="flex md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0">
             {platforms.map((platform) => (
               <button
                 key={platform.id}
                 onClick={() => setSelectedFilterPlatform(platform.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
-                  selectedFilterPlatform === platform.id
+                className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors flex-shrink-0 md:flex-shrink ${selectedFilterPlatform === platform.id
                     ? "bg-white shadow-sm border border-gray-200"
                     : "hover:bg-gray-100"
-                } cursor-pointer`}
+                  } cursor-pointer`}
               >
                 {platform.icon}
                 <span className="text-sm font-medium">{platform.label}</span>
@@ -136,11 +136,11 @@ export function FilterModal({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+          <div className="p-4 md:p-6 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">Data Filters</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-gray-900">Data Filters</h2>
               <p className="text-sm text-gray-600 mt-1">
                 Filter your data to target the right influencers and make smarter outreach decisions.
               </p>
@@ -151,12 +151,12 @@ export function FilterModal({
           </div>
 
           {/* Filter Content */}
-          <div className="flex-1 p-6 overflow-y-auto">
+          <div className="flex-1 p-4 md:p-6 overflow-y-auto">
             <div className="space-y-8">
               {/* Platform Title */}
               <div className="flex items-center gap-3">
                 {platforms.find((p) => p.id === selectedFilterPlatform)?.icon}
-                <h3 className="text-lg font-semibold capitalize">{selectedFilterPlatform}</h3>
+                <h3 className="text-lg font-semibold capitalize">{selectedFilterPlatform.replace(/([A-Z])/g, ' $1')}</h3>
               </div>
 
               {/* Followers Range */}
@@ -271,36 +271,33 @@ export function FilterModal({
               {/* Account Preference */}
               <div className="space-y-4">
                 <label className="text-sm font-medium text-gray-700">Account Preference</label>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => handleAccountPreferenceToggle("private")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                      filterSettings.accountPreference.private
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${filterSettings.accountPreference.private
                         ? "bg-[#7F56D9] text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    } cursor-pointer`}
+                      } cursor-pointer`}
                   >
                     Private
                     {filterSettings.accountPreference.private && <Check className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => handleAccountPreferenceToggle("verified")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                      filterSettings.accountPreference.verified
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${filterSettings.accountPreference.verified
                         ? "bg-[#7F56D9] text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    } cursor-pointer `}
+                      } cursor-pointer `}
                   >
                     Verified
                     {filterSettings.accountPreference.verified && <Check className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => handleAccountPreferenceToggle("professional")}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
-                      filterSettings.accountPreference.professional
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${filterSettings.accountPreference.professional
                         ? "bg-[#7F56D9] text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    } cursor-pointer`}
+                      } cursor-pointer`}
                   >
                     Professional
                     {filterSettings.accountPreference.professional && <Check className="w-4 h-4" />}
@@ -311,16 +308,16 @@ export function FilterModal({
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200 flex items-center justify-between">
-            <Button variant="outline" className="text-gray-700 bg-transparent cursor-pointer">
+          <div className="p-4 md:p-6 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4 flex-shrink-0">
+            <Button variant="outline" className="w-full sm:w-auto text-gray-700 bg-transparent cursor-pointer">
               Reset
             </Button>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="flex items-center gap-2 bg-transparent cursor-pointer">
+            <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-3">
+              <Button variant="outline" className="w-full sm:w-auto flex items-center justify-center gap-2 bg-transparent cursor-pointer">
                 Save/Load Template
                 <ChevronDown className="w-4 h-4" />
               </Button>
-              <Button className="bg-[#7F56D9] hover:bg-purple-700 text-white cursor-pointer" onClick={onClose}>
+              <Button className="w-full sm:w-auto bg-[#7F56D9] hover:bg-purple-700 text-white cursor-pointer" onClick={onClose}>
                 Apply
               </Button>
             </div>

@@ -15,7 +15,7 @@ import Setting from "@/public/siderbar-icon/settings.png";
 import RightArrow from "@/public/siderbar-icon/right-arrow.png";
 import Image from "next/image";
 
-export function Sidebar() {
+export function Sidebar({ onClose }: { onClose?: () => void }) {
   const sidebarItems = [
     { icon: Search, label: "Search", active: true },
     { icon: Home, label: "Home" },
@@ -31,7 +31,7 @@ export function Sidebar() {
   ];
 
   return (
-    <div className="w-72 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <div className="w-72 bg-sidebar border-r border-sidebar-border flex flex-col h-full">
       {/* Header */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
@@ -41,7 +41,7 @@ export function Sidebar() {
           <span className="font-semibold text-sidebar-foreground">
             Untitled UI
           </span>
-          <Button variant="ghost" size="sm" className="ml-auto cursor-pointer">
+          <Button variant="ghost" size="sm" className="ml-auto cursor-pointer" onClick={onClose}>
             <Image src={Menu} alt="Menu" className="w-6 h-6" />
           </Button>
         </div>

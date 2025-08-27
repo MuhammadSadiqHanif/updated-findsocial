@@ -15,7 +15,7 @@ export function SearchBar({ searchQuery, setSearchQuery }: SearchBarProps) {
         placeholder="Enter keywords e.g. 'Pop Artist, Jazz Music or Indie Pop'"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full h-14 px-4 border-none text-base focus:border-purple-500 focus:ring-purple-500"
+        className="w-full h-14 px-4 border-none text-base focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none"
       />
     </div>
   )

@@ -22,7 +22,7 @@ export function ImportModal({ show, uploadedFile, setUploadedFile, onClose }: Im
   if (!show) return null
 
   const handleFileUpload = (file: File) => {
-    const sizeInMB = (file.size / (1024 * 1024)).toFixed(0)
+    const sizeInMB = (file.size / (1024 * 1024)).toFixed(2)
 
     setUploadedFile({
       name: file.name,
@@ -85,8 +85,8 @@ export function ImportModal({ show, uploadedFile, setUploadedFile, onClose }: Im
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+    <div className="fixed inset-0 backdrop-blur-sm bg-white/5 bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl shadow-gray-500/30 w-full max-w-sm p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Import</h2>
@@ -102,7 +102,7 @@ export function ImportModal({ show, uploadedFile, setUploadedFile, onClose }: Im
 
         {/* Upload Area */}
         <div
-          className="border-2 border-dashed border-purple-300 rounded-lg p-8 text-center mb-4 relative hover:border-[#7F56D9] transition-colors"
+          className="border-2 border-dashed border-purple-300 rounded-lg p-6 md:p-8 text-center mb-4 relative hover:border-[#7F56D9] transition-colors"
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
@@ -132,18 +132,18 @@ export function ImportModal({ show, uploadedFile, setUploadedFile, onClose }: Im
         {uploadedFile && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center flex-shrink-0">
                   <span className="text-xs font-bold text-green-700">CSV</span>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{uploadedFile.name}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{uploadedFile.name}</p>
                   <p className="text-xs text-gray-500">{uploadedFile.size}</p>
                 </div>
               </div>
               <button
                 onClick={removeUploadedFile}
-                className="w-6 h-6 rounded hover:bg-gray-200 flex items-center justify-center"
+                className="w-6 h-6 rounded hover:bg-gray-200 flex items-center justify-center flex-shrink-0 ml-2"
                 disabled={uploadedFile.uploading}
               >
                 <Trash2 className={`w-4 h-4 ${uploadedFile.uploading ? "text-gray-300" : "text-gray-500"}`} />
@@ -152,9 +152,7 @@ export function ImportModal({ show, uploadedFile, setUploadedFile, onClose }: Im
             {/* Progress Bar */}
             <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
               <div
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  uploadedFile.uploading ? "bg-[#7F56D9]" : "bg-green-500"
-                }`}
+                className={`h-2 rounded-full transition-all duration-300 ${uploadedFile.uploading ? "bg-[#7F56D9]" : "bg-green-500"}`}
                 style={{ width: `${uploadedFile.progress}%` }}
               ></div>
             </div>
@@ -170,7 +168,7 @@ export function ImportModal({ show, uploadedFile, setUploadedFile, onClose }: Im
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Button variant="outline" className="flex-1 bg-transparent cursor-pointer" onClick={onClose}>
             Cancel
           </Button>
