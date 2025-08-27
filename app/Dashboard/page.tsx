@@ -1,23 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { Sidebar } from "@/components/sidebar";
-import { TopBar } from "@/components/top-bar";
-import { SearchBar } from "@/components/search-bar";
 import { ActionIcons } from "@/components/action-icons";
-import { ResultsLimitInput } from "@/components/results-limit-input";
-import { SelectedPlatforms } from "@/components/selected-platforms";
-import { PlatformDropdown } from "@/components/platform-dropdown";
 import { AdvanceSearchDropdown } from "@/components/advance-search-dropdown";
 import { FilterModal } from "@/components/filter-modal";
 import { ImportModal } from "@/components/import-modal";
+import { PlatformDropdown } from "@/components/platform-dropdown";
+import { ResultsLimitInput } from "@/components/results-limit-input";
+import { SearchBar } from "@/components/search-bar";
+import { SelectedPlatforms } from "@/components/selected-platforms";
+import { Sidebar } from "@/components/sidebar";
+import { TopBar } from "@/components/top-bar";
 import Instagram from "@/public/platform/instagram.png";
+import SoundCloud from "@/public/platform/soundcloud.png";
+import Spotify from "@/public/platform/spotify.png";
 import TikTok from "@/public/platform/tiktok.png";
 import YouTube from "@/public/platform/youtube.png";
-import Spotify from "@/public/platform/spotify.png";
-import SoundCloud from "@/public/platform/soundcloud.png";
-import Image from "next/image";
 import { Menu } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 export default function SearchInterface() {
   const [searchQuery, setSearchQuery] = useState("");
