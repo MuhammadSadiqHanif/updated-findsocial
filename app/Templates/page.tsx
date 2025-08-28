@@ -1,14 +1,15 @@
 "use client";
 
-import { ListDetailContent } from "@/components/list-detail-content";
+import { ListsContent } from "@/components/ListContent";
+import MessagesContent from "@/components/messages-content";
 import { Sidebar } from "@/components/sidebar";
+import TemplatesContent from "@/components/templates-content";
 import { TopBar } from "@/components/top-bar";
 import { Menu } from "lucide-react";
-import { use, useState } from "react";
+import { useState } from "react";
 
-export default function ListDetailPage({ params }: { params: { id: string } }) {
+export default function Templates() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const { id } = use(params);
 
   return (
     <div className="flex h-screen bg-background">
@@ -31,7 +32,7 @@ export default function ListDetailPage({ params }: { params: { id: string } }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <TopBar title="List Detail">
+        <TopBar title="Templates">
           <button
             className="lg:hidden"
             onClick={() => setSidebarOpen(!isSidebarOpen)}
@@ -41,7 +42,7 @@ export default function ListDetailPage({ params }: { params: { id: string } }) {
         </TopBar>
 
         <div className="flex-1 p-6">
-         <ListDetailContent listId={id} />
+         <TemplatesContent/>
         </div>
       </div>
     </div>
