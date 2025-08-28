@@ -213,11 +213,11 @@ export function LeadsContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 sm:p-6">
       {/* Search and Filter Bar */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex items-center gap-4 flex-1 min-w-0 w-full sm:w-auto">
+          <div className="relative flex-1 max-w-full sm:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#667085] w-4 h-4" />
             <Input
               placeholder="Search"
@@ -245,7 +245,7 @@ export function LeadsContent() {
 
             {/* Filter Dropdown */}
             {isFilterOpen && (
-              <div className="absolute top-full left-0 mt-2 w-80 bg-white border border-[#eaecf0] rounded-lg shadow-lg z-50">
+              <div className="absolute top-full left-0 mt-2 w-full max-w-xs sm:w-80 bg-white border border-[#eaecf0] rounded-lg shadow-lg z-50">
                 <div className="p-4">
                   <h3 className="text-sm font-medium text-[#101828] mb-4">
                     Filter By
@@ -284,15 +284,6 @@ export function LeadsContent() {
                             <div className="flex items-center gap-2">
                               {platform.id === "instagram" && (
                                <Image src={Instagram} alt="instagram" className="w-4 h-4"/>
-                               // <div className="w-4 h-4 bg-gradient-to-br from-[#833ab4] via-[#fd1d1d] to-[#fcb045] rounded-sm flex items-center justify-center">
-                                //   <svg
-                                //     className="w-3 h-3 text-white"
-                                //     fill="currentColor"
-                                //     viewBox="0 0 24 24"
-                                //   >
-                                //     <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919-.058 1.265-.069 1.645-.069 4.849 0 3.205-.012 3.584-.07 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.849.07-3.204 0-3.584-.012-4.849-.07-4.358-.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.849 0 3.205-.012 3.584-.07 4.849.149 3.225 1.664 4.771 4.919 4.919 1.266.058 1.645.07 4.849.07 3.259 0 3.667-.014 4.947-.072 4.358-.2 6.78 2.618 6.98 6.98.059 1.281.073 1.689.073 4.849 0 3.259-.014 3.668-.072 4.948-.196 4.354-2.617-6.78-6.979-6.98-1.281-.059-1.689-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                                //   </svg>
-                                // </div>
                               )}
                               {platform.id === "tiktok" && (
                                <Image src={TikTok} alt="instagram" className="w-4 h-4"/>
@@ -389,59 +380,17 @@ export function LeadsContent() {
       {/* Leads Table */}
       <div className="bg-white rounded-lg border border-[#eaecf0] overflow-hidden">
         {/* Table Header */}
-        <div className="border-b border-[#eaecf0] bg-[#f9fafb] px-6 py-3">
+        <div className="hidden md:block border-b border-[#eaecf0] bg-[#f9fafb] px-6 py-3">
           <div className="grid grid-cols-12 gap-4 items-center text-xs font-medium text-[#667085] uppercase tracking-wide">
             <div className="col-span-1">
               <Checkbox className="border-[#d0d5dd]" />
             </div>
             <div className="col-span-3 flex items-center gap-1">
               Name
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-                />
-              </svg>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
             </div>
-            <div className="col-span-3 flex items-center gap-1">
-              Email address
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-                />
-              </svg>
-            </div>
-            <div className="col-span-2 flex items-center gap-1">
-              Country
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 9l4-4 4 4m0 6l-4 4-4-4"
-                />
-              </svg>
-            </div>
+            <div className="col-span-3 flex items-center gap-1">Email address</div>
+            <div className="col-span-2 flex items-center gap-1">Country</div>
             <div className="col-span-2">URL/Links</div>
             <div className="col-span-1"></div>
           </div>
@@ -450,104 +399,82 @@ export function LeadsContent() {
         {/* Table Body */}
         <div className="divide-y divide-[#eaecf0]">
           {filteredLeads.map((lead) => (
-            <div
-              key={lead.id}
-              className="px-6 py-4 hover:bg-[#f9fafb] transition-colors"
-            >
-              <div className="grid grid-cols-12 gap-4 items-center">
-                <div className="col-span-1">
-                  <Checkbox className="border-[#d0d5dd]" />
-                </div>
-                <div className="col-span-3 flex items-center gap-3">
-                  <div className="relative w-10 h-10 rounded-full overflow-hidden bg-[#f2f4f7] flex-shrink-0">
-                    <Image
-                      src={lead.avatar || "/placeholder.svg"}
-                      alt={lead.name}
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/Leads/${lead.id}`}
-                      className="text-sm font-medium text-[#101828] truncate hover:text-[#7f56d9] transition-colors cursor-pointer block"
-                    >
-                      {lead.name}
-                    </Link>
-                    <div className="text-sm text-[#667085] truncate">
-                      {lead.username}
+            <div key={lead.id} className="md:grid md:grid-cols-12 md:gap-4 md:items-center px-6 py-4 hover:bg-[#f9fafb] transition-colors">
+              {/* Mobile View: Stacked */}
+              <div className="md:hidden space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Checkbox className="border-[#d0d5dd]" />
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden bg-[#f2f4f7] flex-shrink-0">
+                      <Image src={lead.avatar || "/placeholder.svg"} alt={lead.name} width={40} height={40} className="w-full h-full object-cover" />
+                    </div>
+                    <div>
+                      <Link href={`/Leads/${lead.id}`} className="text-sm font-medium text-[#101828] hover:text-[#7f56d9] transition-colors cursor-pointer">
+                        {lead.name}
+                      </Link>
+                      <div className="text-sm text-[#667085]">{lead.username}</div>
                     </div>
                   </div>
-                </div>
-                <div className="col-span-3">
-                  <span className="text-sm text-[#475467] truncate block">
-                    {lead.email}
-                  </span>
-                </div>
-                <div className="col-span-2 flex items-center gap-2">
-                  <Image
-                    src={US}
-                    alt="US Flag"
-                    width={20}
-                    height={15}
-                    className="rounded-sm"
-                  />
-                  <span className="text-sm text-[#475467] truncate">
-                    {lead.country}
-                  </span>
-                </div>
-                <div className="col-span-2 flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                  >
-                    <LinkIcon className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.042-3.441.219-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.001z" />
-                    </svg>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                  >
-                    <svg
-                      className="w-4 h-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                    </svg>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="col-span-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"
-                  >
+                  <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]">
                     <MoreHorizontal className="w-4 h-4" />
                   </Button>
                 </div>
+                <div className="space-y-2">
+                  <div>
+                    <div className="text-xs text-[#667085] mb-1">Email address</div>
+                    <div className="text-sm text-[#475467] truncate">{lead.email}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[#667085] mb-1">Country</div>
+                    <div className="flex items-center gap-2">
+                      <Image src={US} alt="US Flag" width={20} height={15} className="rounded-sm" />
+                      <span className="text-sm text-[#475467]">{lead.country}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[#667085] mb-1">URL/Links</div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><LinkIcon className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.042-3.441.219-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.001z" /></svg></Button>
+                      <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" /></svg></Button>
+                      <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><Plus className="w-4 h-4" /></Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop View: Grid */}
+              <div className="hidden md:col-span-1 md:flex items-center">
+                <Checkbox className="border-[#d0d5dd]" />
+              </div>
+              <div className="hidden md:col-span-3 md:flex items-center gap-3">
+                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-[#f2f4f7] flex-shrink-0">
+                  <Image src={lead.avatar || "/placeholder.svg"} alt={lead.name} width={40} height={40} className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <Link href={`/Leads/${lead.id}`} className="text-sm font-medium text-[#101828] truncate hover:text-[#7f56d9] transition-colors cursor-pointer block">
+                    {lead.name}
+                  </Link>
+                  <div className="text-sm text-[#667085] truncate">{lead.username}</div>
+                </div>
+              </div>
+              <div className="hidden md:col-span-3 md:flex items-center">
+                <span className="text-sm text-[#475467] truncate block">{lead.email}</span>
+              </div>
+              <div className="hidden md:col-span-2 md:flex items-center gap-2">
+                <Image src={US} alt="US Flag" width={20} height={15} className="rounded-sm" />
+                <span className="text-sm text-[#475467] truncate">{lead.country}</span>
+              </div>
+              <div className="hidden md:col-span-2 md:flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><LinkIcon className="w-4 h-4" /></Button>
+                <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.042-3.441.219-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641.001.012.001z" /></svg></Button>
+                <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" /></svg></Button>
+                <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]"><Plus className="w-4 h-4" /></Button>
+              </div>
+              <div className="hidden md:col-span-1 md:flex items-center justify-end">
+                <Button variant="ghost" size="sm" className="p-1 h-8 w-8 text-[#667085] hover:text-[#344054] hover:bg-[#f2f4f7]">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
               </div>
             </div>
           ))}
@@ -555,7 +482,7 @@ export function LeadsContent() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4 text-sm text-[#344054]">
           <span>Total Records {filteredLeads.length}</span>
           <div className="flex items-center gap-2">
@@ -580,20 +507,8 @@ export function LeadsContent() {
             disabled={currentPage === 1}
             className="cursor-pointer border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] h-10 px-3 flex items-center gap-2"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-            Previous
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            <span className="hidden sm:inline">Previous</span>
           </Button>
 
           <div className="flex items-center gap-1">
@@ -624,20 +539,8 @@ export function LeadsContent() {
             disabled={currentPage === totalPages}
             className="cursor-pointer border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] h-10 px-3 flex items-center gap-2"
           >
-            Next
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
+            <span className="hidden sm:inline">Next</span>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
           </Button>
         </div>
       </div>

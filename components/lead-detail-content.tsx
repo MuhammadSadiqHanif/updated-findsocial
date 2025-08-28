@@ -45,13 +45,14 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
   const tabs = ["TikTok", "YouTube", "SoundCloud", "Spotify Artist", "Spotify"]
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 mb-6">
-        <Link href="/Leads" className="text-[#667085] hover:text-[#344054] transition-colors">
+      <div className="flex items-center flex-wrap gap-2 mb-6">
+        <Link href="/Leads" className="text-[#667085] hover:text-[#344054] transition-colors flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Leads</span>
         </Link>
-        <span className="text-sm text-[#667085]">About</span>
+        <span className="text-sm text-[#667085]">/ About</span>
         <div className="flex items-center gap-2 bg-[#f9f5ff] px-2 py-1 rounded-full">
           <div className="w-2 h-2 bg-[#7f56d9] rounded-full"></div>
           <span className="text-xs text-[#7f56d9] font-medium">Generated from {leadDetailData.generatedFrom}</span>
@@ -59,7 +60,7 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-3 mb-8">
+      <div className="flex items-center justify-end flex-wrap gap-3 mb-8">
         <Button
           variant="outline"
           className="cursor-pointer border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] h-10 px-4 flex items-center gap-2 bg-transparent"
@@ -90,10 +91,10 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column - Profile Info */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg border border-[#eaecf0] p-6">
+        <div className="md:col-span-1">
+          <div className="bg-white rounded-lg border border-[#eaecf0] p-4 sm:p-6">
             {/* Profile Header */}
             <div className="flex flex-col items-center text-center mb-6">
               <div className="relative mb-4">
@@ -116,7 +117,7 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
               </div>
               <h1 className="text-xl font-semibold text-[#101828] mb-1">{leadDetailData.name}</h1>
               <p className="text-[#667085] mb-2">{leadDetailData.username}</p>
-              <div className="flex items-center gap-2 text-sm text-[#667085] mb-2">
+              <div className="flex items-center justify-center flex-wrap gap-x-2 gap-y-1 text-sm text-[#667085] mb-2">
                 <Mail className="w-4 h-4" />
                 <span>{leadDetailData.email}</span>
               </div>
@@ -151,17 +152,17 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
         </div>
 
         {/* Right Column - Platform Details */}
-        <div className="lg:col-span-2">
+        <div className="md:col-span-2">
           {/* Platform Tabs */}
-          <div className="flex items-center gap-1 mb-6 overflow-x-auto">
+          <div className="flex items-center border-b border-gray-200 overflow-x-auto">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`cursor-pointer px-4 py-2 text-sm font-medium rounded-lg whitespace-nowrap transition-colors ${
+                className={`cursor-pointer px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors -mb-px border-b-2 ${
                   activeTab === tab
-                    ? "bg-[#f9f5ff] text-[#7f56d9] border border-[#e9d7fe]"
-                    : "text-[#667085] hover:text-[#344054] hover:bg-[#f9fafb]"
+                    ? "border-[#7f56d9] text-[#7f56d9]"
+                    : "border-transparent text-[#667085] hover:text-[#344054] hover:border-gray-300"
                 }`}
               >
                 {tab}
@@ -170,9 +171,9 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
           </div>
 
           {/* Platform Content */}
-          <div className="bg-white rounded-lg border border-[#eaecf0] p-6">
+          <div className="bg-white rounded-b-lg border-x border-b border-[#eaecf0] p-4 sm:p-6">
             {/* Platform Header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -187,20 +188,20 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
                   className="cursor-pointer border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] h-9 px-3 flex items-center gap-2 bg-transparent"
                 >
                   <ExternalLink className="w-4 h-4" />
-                  Links
+                  <span className="hidden sm:inline">Links</span>
                 </Button>
                 <Button
                   variant="outline"
                   className="cursor-pointer border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] h-9 px-3 flex items-center gap-2 bg-transparent"
                 >
                   <User className="w-4 h-4" />
-                  Profile
+                  <span className="hidden sm:inline">Profile</span>
                 </Button>
               </div>
             </div>
 
             {/* Platform Stats */}
-            <div className="grid grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
               <div>
                 <div className="text-2xl font-semibold text-[#101828] mb-1">
                   {leadDetailData.platforms.tiktok.followers}
@@ -223,22 +224,22 @@ export default function LeadDetailContent({ leadId }: LeadDetailContentProps) {
 
             {/* Platform Details */}
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Hash className="w-5 h-5 text-[#667085]" />
+              <div className="flex items-start gap-3">
+                <Hash className="w-5 h-5 text-[#667085] mt-1 flex-shrink-0" />
                 <div>
                   <div className="text-sm font-medium text-[#101828]">UID</div>
-                  <div className="text-sm text-[#667085]">{leadDetailData.platforms.tiktok.uid}</div>
+                  <div className="text-sm text-[#667085] break-all">{leadDetailData.platforms.tiktok.uid}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <User className="w-5 h-5 text-[#667085]" />
+              <div className="flex items-start gap-3">
+                <User className="w-5 h-5 text-[#667085] mt-1 flex-shrink-0" />
                 <div>
                   <div className="text-sm font-medium text-[#101828]">Name</div>
                   <div className="text-sm text-[#667085]">{leadDetailData.name}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <AtSign className="w-5 h-5 text-[#667085]" />
+              <div className="flex items-start gap-3">
+                <AtSign className="w-5 h-5 text-[#667085] mt-1 flex-shrink-0" />
                 <div>
                   <div className="text-sm font-medium text-[#101828]">Username</div>
                   <div className="text-sm text-[#667085]">{leadDetailData.platforms.tiktok.username}</div>
