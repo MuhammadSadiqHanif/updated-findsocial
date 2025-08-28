@@ -1,12 +1,13 @@
 "use client";
 
+import { LeadsContent } from "@/components/leads-content";
 import { ListsContent } from "@/components/ListContent";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/top-bar";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 
-export default function Lists() {
+export default function Leads() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -30,7 +31,7 @@ export default function Lists() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <TopBar title="Lists">
+        <TopBar title="Leads">
           <button
             className="lg:hidden"
             onClick={() => setSidebarOpen(!isSidebarOpen)}
@@ -40,7 +41,7 @@ export default function Lists() {
         </TopBar>
 
         <div className="flex-1 p-6">
-         <ListsContent/>
+          <LeadsContent />
         </div>
       </div>
     </div>

@@ -32,7 +32,7 @@ export default function ListDetailPage({ params }: { params: { id: string } }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <TopBar>
+        <TopBar title="List Detail">
           <button
             className="lg:hidden"
             onClick={() => setSidebarOpen(!isSidebarOpen)}

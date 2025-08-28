@@ -32,7 +32,7 @@ export default function Home() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <TopBar>
+        <TopBar title="Home">
           <button
             className="lg:hidden"
             onClick={() => setSidebarOpen(!isSidebarOpen)}

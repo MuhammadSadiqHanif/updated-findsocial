@@ -109,7 +109,7 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
           </div>
           <Button
             variant="outline"
-            className="border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] flex items-center gap-2 bg-transparent"
+            className="cursor-pointer border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] flex items-center gap-2 bg-transparent"
           >
             <Filter className="w-4 h-4" />
             Filter
@@ -117,7 +117,7 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            className="bg-[#7f56d9] hover:bg-[#6941c6] text-white px-4 py-2 rounded-lg flex items-center gap-2"
+            className="cursor-pointer bg-[#7f56d9] hover:bg-[#6941c6] text-white px-4 py-2 rounded-lg flex items-center gap-2"
             onClick={() => setIsAddRecordsModalOpen(true)}
           >
             <Plus className="w-4 h-4" />
@@ -242,7 +242,7 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
           <Button
             variant="outline"
             size="sm"
-            className="border-[#d0d5dd] text-[#344054] bg-transparent"
+            className="cursor-pointer border-[#d0d5dd] text-[#344054] bg-transparent"
           >
             Previous
           </Button>
@@ -254,7 +254,7 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
             >
               1
             </Button>
-            <Button variant="ghost" size="sm" className="text-[#667085]">
+            <Button variant="ghost" size="sm" className="cursor-pointer text-[#667085]">
               Next
             </Button>
           </div>

@@ -137,7 +137,7 @@ export default function SearchInterface() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <TopBar>
+        <TopBar title="Search">
           <button
             className="lg:hidden"
             onClick={() => setSidebarOpen(!isSidebarOpen)}

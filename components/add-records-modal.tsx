@@ -124,7 +124,7 @@ export function AddRecordsModal({ open, onOpenChange, onAddRecords }: AddRecords
               </div>
               <Button
                 variant="outline"
-                className="border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] flex items-center gap-2 bg-white h-10 px-4"
+                className="cursor-pointer border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] flex items-center gap-2 bg-white h-10 px-4"
               >
                 <Filter className="w-4 h-4" />
                 Filter
@@ -254,7 +254,7 @@ export function AddRecordsModal({ open, onOpenChange, onAddRecords }: AddRecords
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-[#d0d5dd] text-[#344054] bg-white hover:bg-[#f9fafb] px-3 py-2"
+                  className="cursor-pointer border-[#d0d5dd] text-[#344054] bg-white hover:bg-[#f9fafb] px-3 py-2"
                 >
                   ← Previous
                 </Button>
@@ -286,7 +286,7 @@ export function AddRecordsModal({ open, onOpenChange, onAddRecords }: AddRecords
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-[#d0d5dd] text-[#344054] bg-white hover:bg-[#f9fafb] px-3 py-2"
+                  className="cursor-pointer border-[#d0d5dd] text-[#344054] bg-white hover:bg-[#f9fafb] px-3 py-2"
                 >
                   Next →
                 </Button>
@@ -298,14 +298,14 @@ export function AddRecordsModal({ open, onOpenChange, onAddRecords }: AddRecords
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] bg-white px-4 py-2"
+            className="cursor-pointer border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] bg-white px-4 py-2"
           >
             Cancel
           </Button>
           <Button
             onClick={handleAddToList}
             disabled={selectedRecords.length === 0}
-            className="bg-[#7f56d9] hover:bg-[#6941c6] text-white disabled:bg-[#f2f4f7] disabled:text-[#667085] px-4 py-2"
+            className="cursor-pointer bg-[#7f56d9] hover:bg-[#6941c6] text-white disabled:bg-[#f2f4f7] disabled:text-[#667085] px-4 py-2"
           >
             Add to list
           </Button>

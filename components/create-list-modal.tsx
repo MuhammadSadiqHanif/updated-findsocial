@@ -78,13 +78,13 @@ export function CreateListModal({ open, onOpenChange, onListCreated }: CreateLis
           <div className="flex flex-col sm:flex-row items-center gap-3 pt-4">
             <Button
               variant="outline"
-              className="flex-1 border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] hover:border-[#d0d5dd] bg-transparent"
+              className="cursor-pointer flex-1 border-[#d0d5dd] text-[#344054] hover:bg-[#f9fafb] hover:border-[#d0d5dd] bg-transparent"
               onClick={() => handleOpenChange(false)}
             >
               Cancel
             </Button>
             <Button
-              className={`flex-1 text-white ${
+              className={`cursor-pointer flex-1 text-white ${
                 isFormValid
                   ? "bg-[#7f56d9] hover:bg-[#6941c6] cursor-pointer"
                   : "bg-[#98a2b3] cursor-not-allowed hover:bg-[#98a2b3]"

@@ -7,12 +7,12 @@ import Layers from "@/public/top-bar/layers.png"
 import Image from "next/image"
 import type React from "react"
 
-export function TopBar({ children }: { children?: React.ReactNode }) {
+export function TopBar({ children, title }: { children?: React.ReactNode, title: string }) {
   return (
     <div className="h-16 border-b border-border flex items-center justify-between px-6">
       <div className="flex items-center gap-4">
         {children}
-        <h1 className="text-lg font-semibold">Search</h1>
+        <h1 className="text-lg font-semibold">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm">

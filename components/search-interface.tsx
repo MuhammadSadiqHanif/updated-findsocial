@@ -134,7 +134,7 @@ export function SearchInterface() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <TopBar />
+        <TopBar title="Search" />
 
         {/* Search Content */}
         <div className="flex-1 flex items-center justify-center p-8">
