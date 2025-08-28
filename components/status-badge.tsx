@@ -10,6 +10,10 @@ export function StatusBadge({ status }: StatusBadgeProps) {
       label: "In Progress",
       className: "bg-[#f0f9ff] text-[#026aa2] border-[#b9e6fe] hover:bg-[#f0f9ff]",
     },
+    "sent": {
+      label: "sent",
+      className: "bg-[#f0f9ff] text-[#026aa2] border-[#b9e6fe] hover:bg-[#f0f9ff]",
+    },
     pending: {
       label: "Pending",
       className: "bg-[#fffaeb] text-[#b54708] border-[#fedf89] hover:bg-[#fffaeb]",
@@ -29,6 +33,10 @@ export function StatusBadge({ status }: StatusBadgeProps) {
   }
 
   const config = statusConfig[status]
+
+  if (!config) {
+    return null
+  }
 
   return (
     <Badge variant="outline" className={config.className}>
