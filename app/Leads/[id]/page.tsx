@@ -31,8 +31,9 @@ export default function ListDetailPage({ params }: { params: { id: string } }) {
         </div>
       )}
 
+
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col lg:ml-72">
         <TopBar title="Lead Detail">
           <button
             className="lg:hidden"

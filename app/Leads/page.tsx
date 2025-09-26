@@ -4,12 +4,13 @@ import { LeadsContent } from "@/components/leads-content";
 import { ListsContent } from "@/components/ListContent";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/top-bar";
+import { useAuth } from "@/hooks/use-auth";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 
 export default function Leads() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-
+ const { userId } = useAuth();
   return (
     <div className="flex h-screen bg-background">
       <div className="hidden lg:flex">
@@ -30,7 +31,7 @@ export default function Leads() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col lg:ml-72">
         <TopBar title="Leads">
           <button
             className="lg:hidden"
@@ -41,7 +42,7 @@ export default function Leads() {
         </TopBar>
 
         <div className="flex-1 p-6">
-          <LeadsContent />
+          <LeadsContent userId={userId} />
         </div>
       </div>
     </div>

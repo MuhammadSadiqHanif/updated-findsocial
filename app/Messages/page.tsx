@@ -30,7 +30,7 @@ export default function Messages() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col lg:ml-72">
         <TopBar title="Messages">
           <button
             className="lg:hidden"

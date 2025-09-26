@@ -31,7 +31,7 @@ export default function Templates() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col lg:ml-72">
         <TopBar title="Templates">
           <button
             className="lg:hidden"

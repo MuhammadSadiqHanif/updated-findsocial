@@ -4,12 +4,13 @@ import { HistoryQueue } from "@/components/history-queue";
 import { MetricsCards } from "@/components/metrics-cards";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/top-bar";
+import { useAuth } from "@/hooks/use-auth";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 
 export default function Home() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
-  
+   const { userId } = useAuth();
 
   return (
     <div className="flex h-screen bg-background">
@@ -31,7 +32,7 @@ export default function Home() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col lg:ml-72">
         <TopBar title="Home">
           <button
             className="lg:hidden"
@@ -44,10 +45,10 @@ export default function Home() {
         <div className="flex-1 p-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="lg:col-span-2">
-              <MetricsCards />
+              <MetricsCards userId={userId}/>
             </div>
             <div className="lg:col-span-2">
-              <HistoryQueue />
+              <HistoryQueue userId={userId} />
             </div>
           </div>
         </div>

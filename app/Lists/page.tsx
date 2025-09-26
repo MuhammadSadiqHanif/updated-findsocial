@@ -10,8 +10,8 @@ export default function Lists() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-background">
-      <div className="hidden lg:flex">
+    <div className="flex h-screen bg-background overflow-hidden">
+      <div className="hidden lg:flex lg:fixed lg:top-0 lg:left-0 lg:h-full lg:z-40">
         <Sidebar />
       </div>
 
@@ -29,7 +29,7 @@ export default function Lists() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col lg:ml-72 w-full min-w-0">
         <TopBar title="Lists">
           <button
             className="lg:hidden"
@@ -39,7 +39,7 @@ export default function Lists() {
           </button>
         </TopBar>
 
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 w-full overflow-auto">
          <ListsContent/>
         </div>
       </div>

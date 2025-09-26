@@ -45,7 +45,7 @@ export function Sidebar({ onClose }: { onClose?: () => void}) {
   };
 
   return (
-    <div className="w-72 bg-sidebar border-r border-sidebar-border flex flex-col h-full">
+    <div className="fixed left-0 top-0 w-72 bg-sidebar border-r border-sidebar-border flex flex-col h-screen z-40">
       {/* Header */}
       <div className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">

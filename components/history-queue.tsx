@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { RefreshCw, ChevronDown, Eye } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { StatusBadge } from "./status-badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Instagram from "@/public/platform/instagram.png";
 import Spotify from "@/public/platform/spotify.png";
+import { ChevronDown, Eye, RefreshCw } from "lucide-react";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { StatusBadge } from "./status-badge";
 
-export function HistoryQueue() {
-  const { userId } = useAuth();
+export function HistoryQueue({ userId }: { userId: string | null }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tasks, setTasks] = useState<any>({
@@ -19,9 +17,12 @@ export function HistoryQueue() {
     all_tasks: [],
     summary: {},
   });
+  console.log(userId);
 
   useEffect(() => {
-    if (!userId) return;
+    if (userId === null) return;
+    console.log("userId:", userId);
+
     setLoading(true);
     setError(null);
     fetch(`https://dev-api.findsocial.io/multi-platform-search-queue/${userId}`)
