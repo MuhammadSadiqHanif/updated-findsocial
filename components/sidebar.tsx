@@ -15,8 +15,12 @@ import Setting from '@/public/siderbar-icon/settings.png';
 import RightArrow from '@/public/siderbar-icon/right-arrow.png';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
+import { useUserInfo } from '@/hooks/use-user-info';
 
-export function Sidebar({ onClose }: { onClose?: () => void }) {
+export function Sidebar({ onClose }: { onClose?: () => void}) {
+   const { userId, isLoading, apiCallWithUserId } = useAuth();
+    const { userInfo, loading, error, refetch } = useUserInfo(userId)
   const pathname = usePathname();
   const router = useRouter();
   const sidebarItems = [
@@ -109,15 +113,15 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         <div className="p-4 border-t border-sidebar-border">
           <div className="flex items-center gap-3">
             <Avatar className="w-8 h-8">
-              <AvatarImage src="/professional-woman-avatar.png" />
-              <AvatarFallback>OR</AvatarFallback>
+              <AvatarImage src={userInfo?.picture} alt={userInfo?.name} />
+              {/* <AvatarFallback>OR</AvatarFallback> */}
             </Avatar>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-sidebar-foreground">
-                Olivia Rhye
+               {userInfo?.name}
               </p>
               <p className="text-xs text-sidebar-foreground/60 truncate">
-                olivia@example.com
+                {userInfo?.email}
               </p>
             </div>
             <Button variant="ghost" size="sm">

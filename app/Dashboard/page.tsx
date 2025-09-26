@@ -10,6 +10,9 @@ import { SearchBar } from "@/components/search-bar";
 import { SelectedPlatforms } from "@/components/selected-platforms";
 import { Sidebar } from "@/components/sidebar";
 import { TopBar } from "@/components/top-bar";
+import { useAuth } from "@/hooks/use-auth";
+import { useUserInfo } from "@/hooks/use-user-info";
+import { toast } from "@/hooks/use-toast";
 import Instagram from "@/public/platform/instagram.png";
 import SoundCloud from "@/public/platform/soundcloud.png";
 import Spotify from "@/public/platform/spotify.png";
@@ -19,15 +22,38 @@ import { Menu } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
+// Platform-specific filter settings type
+type PlatformFilterSettings = {
+  followersRange: [number, number];
+  followingRange: [number, number];
+  postsRange: [number, number];
+  likesRange: [number, number];
+  accountPreference: {
+    verified: boolean;
+    email: boolean;
+    private: boolean;
+    commerce: boolean;
+  };
+};
+
+type AllPlatformFilters = {
+  [platform: string]: PlatformFilterSettings;
+};
+
 export default function SearchInterface() {
+  const { userId, isLoading, apiCallWithUserId } = useAuth();
+  const { userInfo, loading, error, refetch } = useUserInfo(
+    userId || undefined
+  );
   const [searchQuery, setSearchQuery] = useState("");
-  const [resultsLimit, setResultsLimit] = useState("");
+  const [resultsLimit, setResultsLimit] = useState("50");
   const [showPlatformsDropdown, setShowPlatformsDropdown] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [showAdvanceSearchDropdown, setShowAdvanceSearchDropdown] =
     useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [advanceSearchSettings, setAdvanceSearchSettings] = useState({
     deepSearch: true,
     aiSemanticSearch: true,
@@ -40,23 +66,116 @@ export default function SearchInterface() {
   } | null>(null);
   const [selectedFilterPlatform, setSelectedFilterPlatform] =
     useState("instagram");
-  const [filterSettings, setFilterSettings] = useState({
-    followersRange: [0, 50000000],
-    followingRange: [0, 50000000],
-    socialPostRange: [0, 50000000],
-    accountPreference: {
-      private: true,
-      verified: true,
-      professional: false,
+  const [saveTemplate, setSaveTemplate] = useState(false);
+  
+  // Default filter settings for reset functionality
+  const defaultFilterSettings = {
+    instagram: {
+      followersRange: [0, 50000000] as [number, number],
+      postsRange: [0, 10000] as [number, number],
+      country: "",
+      is_private: false,
+      has_clips: false,
+      is_verified: false,
+      is_professional_account: false,
+    },
+    tiktok: {
+      followers: [0, 50000000] as [number, number],
+      following: [0, 50000000] as [number, number],
+      likes: [0, 10000000] as [number, number],
+      post: [0, 10000] as [number, number],
+      friendscount: [0, 50000000] as [number, number],
+      verified: false,
+      email: false,
+      privateuser: false,
+      commerceuser: false,
+    },
+    youtube: {
+      subscribers: [0, 50000000] as [number, number],
+      email: false,
+      instagram: false,
+      video_count: [0, 10000] as [number, number],
+      views_count: [0, 1000000000] as [number, number],
+    },
+    spotify_playlist: {
+      likes: [0, 1000000] as [number, number],
+      tracks: [0, 10000] as [number, number],
+      collaborative: false,
+      public: false,
+      private: false,
+    },
+    spotify_artist: {
+      followers: [0, 50000000] as [number, number],
+      listens: [0, 100000000] as [number, number],
+      verified: false,
+    },
+    soundcloud: {
+      followers: [0, 10000000] as [number, number],
+      following: [0, 10000] as [number, number],
+      likes: [0, 1000000] as [number, number],
+      creator_subscription: false,
+      created_at: "",
+      city: "",
+      country_code: "",
+    },
+  };
+  const [filterSettings, setFilterSettings] = useState<any>({
+    instagram: {
+      followersRange: [0, 50000000] as [number, number],
+      postsRange: [0, 10000] as [number, number],
+      country: "",
+      is_private: false,
+      has_clips: false,
+      is_verified: false,
+      is_professional_account: false,
+    },
+    tiktok: {
+      followers: [0, 50000000] as [number, number],
+      following: [0, 50000000] as [number, number],
+      likes: [0, 10000000] as [number, number],
+      post: [0, 10000] as [number, number],
+      friendscount: [0, 50000000] as [number, number],
+      verified: false,
+      email: false,
+      privateuser: false,
+      commerceuser: false,
+    },
+    youtube: {
+      subscribers: [0, 50000000] as [number, number],
+      email: false,
+      instagram: false,
+      video_count: [0, 10000] as [number, number],
+      views_count: [0, 1000000000] as [number, number],
+    },
+    spotify_playlist: {
+      likes: [0, 1000000] as [number, number],
+      tracks: [0, 10000] as [number, number],
+      collaborative: false,
+      public: false,
+      private: false,
+    },
+    spotify_artist: {
+      followers: [0, 50000000] as [number, number],
+      listens: [0, 100000000] as [number, number],
+      verified: false,
+    },
+    soundcloud: {
+      followers: [0, 10000000] as [number, number],
+      following: [0, 10000] as [number, number],
+      likes: [0, 1000000] as [number, number],
+      creator_subscription: false,
+      created_at: "",
+      city: "",
+      country_code: "",
     },
   });
 
   const [selectedPlatforms, setSelectedPlatforms] = useState({
     instagram: true,
-    tiktok: true,
-    youtube: true,
-    spotifyArtist: false,
-    spotifyPlaylist: false,
+    tiktok: false,
+    youtube: false,
+    spotify_playlist: false,
+    spotify_artist: false,
     soundcloud: false,
   });
 
@@ -77,12 +196,12 @@ export default function SearchInterface() {
       icon: <Image src={YouTube} alt="YouTube" width={20} height={20} />,
     },
     {
-      id: "spotifyArtist",
+      id: "spotify_artist",
       label: "Spotify Artist",
       icon: <Image src={Spotify} alt="Spotify" width={20} height={20} />,
     },
     {
-      id: "spotifyPlaylist",
+      id: "spotify_playlist",
       label: "Spotify Playlist",
       icon: <Image src={Spotify} alt="Spotify" width={20} height={20} />,
     },
@@ -115,6 +234,220 @@ export default function SearchInterface() {
       [setting]: !prev[setting],
     }));
   };
+
+  // Reset filters to default state
+  const handleResetFilters = () => {
+    setFilterSettings(defaultFilterSettings);
+  };
+
+  // Toggle save template functionality
+  const handleToggleSaveTemplate = () => {
+    setSaveTemplate(!saveTemplate);
+  };
+
+  // API call function for multi-platform search
+  const handleSearch = async () => {
+    if (!searchQuery || !userId) {
+      console.log("Search query or userId missing");
+      toast({
+        title: "Search Required",
+        description: "Please enter a search query",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Set loading state to true
+    setIsSearching(true);
+
+    console.log("Starting search with:", {
+      searchQuery,
+      userId,
+      selectedPlatforms,
+      advanceSearchSettings,
+    });
+
+    try {
+      // Build platforms array with filters for selected platforms
+      const platformsData = Object.keys(selectedPlatforms)
+        .filter(
+          (key) => selectedPlatforms[key as keyof typeof selectedPlatforms]
+        )
+        .map((platformKey) => {
+          const platformSettings = filterSettings[platformKey];
+          let platformName = platformKey;
+
+          // Map platform keys to correct names
+          if (platformKey === "spotify_artist") platformName = "Spotify Artist";
+          else if (platformKey === "spotify_playlist")
+            platformName = "Spotify Playlist";
+          else
+            platformName =
+              platformKey.charAt(0).toUpperCase() + platformKey.slice(1);
+
+          // Build filters object based on platform
+          const filters: any = {
+            llm_generated: advanceSearchSettings.aiSemanticSearch,
+          };
+
+          // Add platform-specific filters
+          if (platformKey === "instagram") {
+            if (platformSettings.country)
+              filters.country = platformSettings.country;
+            if (platformSettings.is_private)
+              filters.is_private = platformSettings.is_private;
+            if (platformSettings.has_clips)
+              filters.has_clips = platformSettings.has_clips;
+            if (platformSettings.is_verified)
+              filters.is_verified = platformSettings.is_verified;
+            if (platformSettings.is_professional_account)
+              filters.is_professional_account =
+                platformSettings.is_professional_account;
+            filters.min_followers = platformSettings.followersRange[0];
+            filters.max_followers = platformSettings.followersRange[1];
+            filters.min_posts = platformSettings.postsRange[0];
+            filters.max_posts = platformSettings.postsRange[1];
+          } else if (platformKey === "tiktok") {
+            if (platformSettings.verified)
+              filters.verified = platformSettings.verified;
+            if (platformSettings.email) filters.email = platformSettings.email;
+            if (platformSettings.privateuser)
+              filters.privateuser = platformSettings.privateuser;
+            if (platformSettings.commerceuser)
+              filters.commerceuser = platformSettings.commerceuser;
+            filters.min_followers = platformSettings.followers[0];
+            filters.max_followers = platformSettings.followers[1];
+            filters.min_following = platformSettings.following[0];
+            filters.max_following = platformSettings.following[1];
+            filters.min_likes = platformSettings.likes[0];
+            filters.max_likes = platformSettings.likes[1];
+            filters.min_posts = platformSettings.post[0];
+            filters.max_posts = platformSettings.post[1];
+            filters.min_friendscount = platformSettings.friendscount[0];
+            filters.max_friendscount = platformSettings.friendscount[1];
+          } else if (platformKey === "youtube") {
+            if (platformSettings.email) filters.email = platformSettings.email;
+            if (platformSettings.instagram)
+              filters.instagram = platformSettings.instagram;
+            filters.min_subscribers = platformSettings.subscribers[0];
+            filters.max_subscribers = platformSettings.subscribers[1];
+            filters.min_video_count = platformSettings.video_count[0];
+            filters.max_video_count = platformSettings.video_count[1];
+            filters.min_views_count = platformSettings.views_count[0];
+            filters.max_views_count = platformSettings.views_count[1];
+          } else if (platformKey === "spotify_playlist") {
+            if (platformSettings.collaborative)
+              filters.collaborative = platformSettings.collaborative;
+            if (platformSettings.public)
+              filters.public = platformSettings.public;
+            if (platformSettings.private)
+              filters.private = platformSettings.private;
+            filters.min_likes = platformSettings.likes[0];
+            filters.max_likes = platformSettings.likes[1];
+            filters.min_tracks = platformSettings.tracks[0];
+            filters.max_tracks = platformSettings.tracks[1];
+          } else if (platformKey === "spotify_artist") {
+            if (platformSettings.verified)
+              filters.verified = platformSettings.verified;
+            filters.min_followers = platformSettings.followers[0];
+            filters.max_followers = platformSettings.followers[1];
+            filters.min_listens = platformSettings.listens[0];
+            filters.max_listens = platformSettings.listens[1];
+          } else if (platformKey === "soundcloud") {
+            if (platformSettings.creator_subscription)
+              filters.creator_subscription =
+                platformSettings.creator_subscription;
+            if (platformSettings.city) filters.city = platformSettings.city;
+            if (platformSettings.country_code)
+              filters.country_code = platformSettings.country_code;
+            if (platformSettings.created_at)
+              filters.created_at = platformSettings.created_at;
+            filters.min_followers = platformSettings.followers[0];
+            filters.max_followers = platformSettings.followers[1];
+            filters.min_following = platformSettings.following[0];
+            filters.max_following = platformSettings.following[1];
+            filters.min_likes = platformSettings.likes[0];
+            filters.max_likes = platformSettings.likes[1];
+          }
+
+          return {
+            name: platformName,
+            filters,
+          };
+        });
+
+      const searchData = {
+        user: userId,
+        search: searchQuery,
+        platforms: platformsData,
+        deep_search: advanceSearchSettings.deepSearch,
+        credits: parseInt(resultsLimit) || 50,
+        save_template: saveTemplate,
+        existing_template: "",
+      };
+
+      console.log("API Request:", JSON.stringify(searchData, null, 2));
+      console.log("Save Template Status:", saveTemplate ? "ON" : "OFF");
+
+      // Make API call to the correct endpoint
+      const response = await fetch(
+        "https://dev-api.findsocial.io/multi-search-multi-platform",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(searchData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("API Error Response:", errorText);
+        throw new Error(
+          `HTTP error! status: ${response.status} - ${errorText}`
+        );
+      }
+
+      const results = await response.json();
+      console.log("Search results:", results);
+
+      // Reset search input to initial state
+      setSearchQuery("");
+
+      // Handle the results here
+      // You can add result handling logic here
+      toast({
+        title: "Search Completed",
+        description: "Search completed successfully! Check console for results.",
+        variant: "success",
+      });
+    } catch (error) {
+      console.error("Search failed:", error);
+      toast({
+        title: "Search Failed",
+        description: `Search failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+        variant: "destructive",
+      });
+    } finally {
+      // Always set loading state to false when done
+      setIsSearching(false);
+    }
+  };
+
+  // Show loading if authentication is still being checked
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7F56D9] mx-auto mb-4"></div>
+          <p>Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
@@ -152,7 +485,8 @@ export default function SearchInterface() {
             {/* Main Heading */}
             <div className="text-center">
               <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-4 md:mb-8">
-                Hi Olivia, What do you want to find?
+                Hi {userInfo?.name || userInfo?.email || "User"}, What do you
+                want to find?
               </h2>
             </div>
 
@@ -160,6 +494,8 @@ export default function SearchInterface() {
               <SearchBar
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
+                onSearch={handleSearch}
+                isLoading={isSearching}
               />
 
               {/* Action Icons and Results Limit */}
@@ -176,6 +512,9 @@ export default function SearchInterface() {
                 <ResultsLimitInput
                   resultsLimit={resultsLimit}
                   setResultsLimit={setResultsLimit}
+                  searchQuery={searchQuery}
+                  onSearch={handleSearch}
+                  isLoading={isSearching}
                 />
               </div>
               <hr />
@@ -205,11 +544,15 @@ export default function SearchInterface() {
         <FilterModal
           show={showFilterModal}
           platforms={platforms}
+          selectedPlatforms={selectedPlatforms}
           selectedFilterPlatform={selectedFilterPlatform}
           setSelectedFilterPlatform={setSelectedFilterPlatform}
           filterSettings={filterSettings}
           setFilterSettings={setFilterSettings}
           onClose={() => setShowFilterModal(false)}
+          onReset={handleResetFilters}
+          saveTemplate={saveTemplate}
+          onToggleSaveTemplate={handleToggleSaveTemplate}
         />
 
         <ImportModal
