@@ -306,13 +306,141 @@ export default function UpgradePlanPage({ onBack }: UpgradePlanPageProps) {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const canceled = urlParams.get('canceled');
+    const sessionId = urlParams.get('session_id');
 
     if (canceled === 'true') {
       // Handle canceled checkout
       console.log('Checkout was canceled');
       // You could show a toast or modal here
     }
+
+    if (sessionId) {
+      // Handle successful payment - update Auth0 user metadata
+      handlePaymentSuccess(sessionId);
+    }
   }, []);
+
+  // Handle payment success and update Auth0 user metadata
+  const handlePaymentSuccess = async (sessionId: string) => {
+    try {
+      const customerId = await getUserMetadata(userId || '');
+      
+      if (!customerId?.app_metadata?.stripe_customer_id) {
+        console.error('No Stripe customer ID found');
+        return;
+      }
+
+      // 1️⃣ GET /stripe-subscriptions
+      const subscriptionsResponse = await fetch(
+        `https://dev-api.findsocial.io/stripe-subscriptions?customer_id=${customerId.app_metadata.stripe_customer_id}`
+      );
+      
+      if (!subscriptionsResponse.ok) {
+        throw new Error('Failed to fetch subscriptions');
+      }
+      
+      const subscriptionsData = await subscriptionsResponse.json();
+      const subscriptionData = subscriptionsData[0];
+
+      // 2️⃣ GET /stripe-checkout-session
+      const checkoutResponse = await fetch(
+        `https://dev-api.findsocial.io/stripe-checkout-session?session_id=${sessionId}`
+      );
+      
+      if (!checkoutResponse.ok) {
+        throw new Error('Failed to fetch checkout session');
+      }
+      
+      const checkoutData = await checkoutResponse.json();
+
+      if (checkoutData?.status === 'complete') {
+        // 3️⃣ GET /stripe-plan-price
+        const priceResponse = await fetch(
+          `https://dev-api.findsocial.io/stripe-plan-price?price_id=${checkoutData?.metadata?.productId}`
+        );
+        
+        if (!priceResponse.ok) {
+          throw new Error('Failed to fetch price data');
+        }
+        
+        const priceData = await priceResponse.json();
+        
+        // Determine plan details based on price
+        const isYearly = priceData.data?.plan?.interval === 'year' || 
+                        priceData.data?.recurring?.interval === 'year';
+        const amount = priceData.data?.unit_amount / 100; // Convert from cents
+
+        let planName = '';
+        let credits = 0;
+
+        // Map amount to plan name and credits
+        if (isYearly) {
+          if (amount === 249) { // €249 yearly
+            planName = 'Starter';
+            credits = 100 * 12; // 100 searches per month * 12 months
+          } else if (amount === 1920) { // €1920 yearly  
+            planName = 'Professional';
+            credits = 1000 * 12; // 1000 searches per month * 12 months
+          } else if (amount >= 2000) {
+            planName = 'Business';
+            credits = 10000 * 12; // 10000 searches per month * 12 months
+          }
+        } else {
+          if (amount === 25) { // €25 monthly
+            planName = 'Starter';
+            credits = 100;
+          } else if (amount === 160) { // €160 monthly
+            planName = 'Professional'; 
+            credits = 1000;
+          } else if (amount >= 200) {
+            planName = 'Business';
+            credits = 10000;
+          }
+        }
+
+        // Prepare user metadata update
+        const user_metadata = {
+          subscriptionPlan: planName,
+          remainingCredits: credits,
+          credits: credits,
+          billingPeriod: isYearly ? 'yearly' : 'monthly',
+          lastUpdated: new Date().toISOString(),
+          subscriptionStartDate: typeof subscriptionData?.start_date === 'string'
+            ? new Date(subscriptionData?.start_date)
+            : new Date(subscriptionData?.start_date * 1000),
+        };
+
+        // 4️⃣ Update Auth0 user metadata
+        const auth0UpdateResponse = await fetch(
+          `https://dev-findsocial.eu.auth0.com/api/v2/users/${userId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${userInfo?.user_metadata?.token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_metadata: user_metadata,
+            }),
+          }
+        );
+
+        if (auth0UpdateResponse.ok) {
+          console.log('✅ Auth0 user metadata updated successfully');
+          
+          // Clear payment intent from localStorage
+          localStorage.removeItem('payment-intent');
+          
+          // Redirect to success page or dashboard
+          router.push('/Dashboard?payment=success');
+        } else {
+          console.error('❌ Failed to update Auth0 user metadata');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling payment success:', error);
+    }
+  };
 
   // Function to verify checkout session (optional)
   const verifyCheckoutSession = async (sessionId: string) => {

@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { X, Check, ChevronDown } from "lucide-react"
+import { toast } from "@/hooks/use-toast"
 
 interface Platform {
   id: string
@@ -88,6 +89,10 @@ interface FilterModalProps {
   onReset: () => void
   saveTemplate: boolean
   onToggleSaveTemplate: () => void
+  isEditMode?: boolean
+  templateName?: string
+  templateId?: string
+  userId?: string | null
 }
 
 export function FilterModal({
@@ -102,9 +107,13 @@ export function FilterModal({
   onReset,
   saveTemplate,
   onToggleSaveTemplate,
+  isEditMode = false,
+  templateName = "",
+  templateId = "",
+  userId = null,
 }: FilterModalProps) {
-  if (!show) return null
-
+  const [isSaving, setIsSaving] = useState(false);
+  
   // Auto-switch to first available platform if current one is not selected
   useEffect(() => {
     if (!selectedPlatforms[selectedFilterPlatform]) {
@@ -114,6 +123,8 @@ export function FilterModal({
       }
     }
   }, [selectedPlatforms, selectedFilterPlatform, platforms, setSelectedFilterPlatform]);
+
+  if (!show) return null
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -294,6 +305,159 @@ export function FilterModal({
       }
     }))
   }
+
+  // Handle template save for edit mode
+  const handleTemplateSave = async () => {
+    if (!isEditMode || !templateId) {
+      console.log("Not in edit mode or no template ID");
+      return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      // Build platforms array with filters for API
+      const platformsData = Object.keys(selectedPlatforms)
+        .filter(key => selectedPlatforms[key as keyof typeof selectedPlatforms])
+        .map(platformKey => {
+          const platformSettings = filterSettings[platformKey];
+          let platformName = platformKey;
+
+          // Map platform keys to correct names for API
+          if (platformKey === "spotify_artist") platformName = "Spotify_Artists";
+          else if (platformKey === "spotify_playlist") platformName = "Spotify_Playlists";
+          else if (platformKey === "tiktok") platformName = "TikTok";
+          else if (platformKey === "youtube") platformName = "YouTube";
+          else if (platformKey === "soundcloud") platformName = "SoundCloud";
+          else if (platformKey === "instagram") platformName = "Instagram";
+
+          // Build filters object based on platform
+          const filters: any = {
+            llm_generated: true, // Default value
+          };
+
+          // Add platform-specific filters
+          if (platformKey === "instagram") {
+            if (platformSettings.country) filters.country = platformSettings.country;
+            filters.is_private = platformSettings.is_private || false;
+            filters.has_clips = platformSettings.has_clips || false;
+            filters.is_verified = platformSettings.is_verified || false;
+            filters.is_professional_account = platformSettings.is_professional_account || false;
+            filters.min_followers = platformSettings.followersRange[0];
+            filters.max_followers = platformSettings.followersRange[1];
+            filters.min_posts = platformSettings.postsRange[0];
+            filters.max_posts = platformSettings.postsRange[1];
+          } else if (platformKey === "tiktok") {
+            filters.verified = platformSettings.verified || false;
+            filters.email = platformSettings.email || false;
+            filters.privateuser = platformSettings.privateuser || false;
+            filters.commerceuser = platformSettings.commerceuser || false;
+            filters.min_followers = platformSettings.followers[0];
+            filters.max_followers = platformSettings.followers[1];
+            filters.min_following = platformSettings.following[0];
+            filters.max_following = platformSettings.following[1];
+            filters.min_likes = platformSettings.likes[0];
+            filters.max_likes = platformSettings.likes[1];
+            filters.min_posts = platformSettings.post[0];
+            filters.max_posts = platformSettings.post[1];
+            filters.min_friendscount = platformSettings.friendscount[0];
+            filters.max_friendscount = platformSettings.friendscount[1];
+          } else if (platformKey === "youtube") {
+            filters.email = platformSettings.email || false;
+            filters.instagram = platformSettings.instagram || false;
+            filters.min_subscribers = platformSettings.subscribers[0];
+            filters.max_subscribers = platformSettings.subscribers[1];
+            filters.min_video_count = platformSettings.video_count[0];
+            filters.max_video_count = platformSettings.video_count[1];
+            filters.min_views_count = platformSettings.views_count[0];
+            filters.max_views_count = platformSettings.views_count[1];
+          } else if (platformKey === "spotify_playlist") {
+            filters.collaborative = platformSettings.collaborative || false;
+            filters.public = platformSettings.public || false;
+            filters.private = platformSettings.private || false;
+            filters.min_likes = platformSettings.likes[0];
+            filters.max_likes = platformSettings.likes[1];
+            filters.min_tracks = platformSettings.tracks[0];
+            filters.max_tracks = platformSettings.tracks[1];
+          } else if (platformKey === "spotify_artist") {
+            filters.verified = platformSettings.verified || false;
+            filters.min_followers = platformSettings.followers[0];
+            filters.max_followers = platformSettings.followers[1];
+            filters.min_listens = platformSettings.listens[0];
+            filters.max_listens = platformSettings.listens[1];
+          } else if (platformKey === "soundcloud") {
+            filters.creator_subscription = platformSettings.creator_subscription || false;
+            if (platformSettings.city) filters.city = platformSettings.city;
+            if (platformSettings.country_code) filters.country_code = platformSettings.country_code;
+            if (platformSettings.created_at) filters.created_at = platformSettings.created_at;
+            filters.min_followers = platformSettings.followers[0];
+            filters.max_followers = platformSettings.followers[1];
+            filters.min_following = platformSettings.following[0];
+            filters.max_following = platformSettings.following[1];
+            filters.min_likes = platformSettings.likes[0];
+            filters.max_likes = platformSettings.likes[1];
+          }
+
+          return {
+            name: platformName,
+            filters,
+          };
+        });
+
+      // Get user ID from props or fallback
+      const userIdToUse = userId || window.localStorage.getItem('auth0_user_id') || 'google-oauth2|106540510453341573284'; // Fallback for testing
+
+      const updateData = {
+        user: userIdToUse,
+        platforms: platformsData,
+        deep_search: true, // Default value
+        template_name: templateName || "Updated Template",
+      };
+
+      console.log("Saving template with data:", JSON.stringify(updateData, null, 2));
+
+      // Make API call to update template
+      const response = await fetch(
+        `https://dev-api.findsocial.io/templates/${templateId}?user=${userIdToUse}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Template save error:", errorText);
+        throw new Error(`Failed to save template: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log("Template saved successfully:", result);
+
+      // Show success toast
+      toast({
+        title: "Template Updated",
+        description: `Template "${templateName}" has been updated successfully!`,
+        variant: "default",
+      });
+
+      // Close modal after successful save
+      onClose();
+
+    } catch (error) {
+      console.error("Error saving template:", error);
+      toast({
+        title: "Save Failed",
+        description: `Failed to save template: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Instagram render function
   const renderInstagramFilters = () => {
@@ -872,9 +1036,21 @@ export function FilterModal({
           {/* Header */}
           <div className="p-4 md:p-6 border-b border-gray-200 flex items-center justify-between flex-shrink-0">
             <div>
-              <h2 className="text-lg md:text-xl font-semibold text-gray-900">Data Filters</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-lg md:text-xl font-semibold text-gray-900">
+                  {isEditMode ? "Edit Template Filters" : "Data Filters"}
+                </h2>
+                {isEditMode && (
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                    EDITING
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-gray-600 mt-1">
-                Filter your data to target the right influencers and make smarter outreach decisions.
+                {isEditMode 
+                  ? `Editing filters for: ${templateName || "Untitled Template"}`
+                  : "Filter your data to target the right influencers and make smarter outreach decisions."
+                }
               </p>
             </div>
             <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center cursor-pointer">
@@ -935,8 +1111,21 @@ export function FilterModal({
                   </>
                 )}
               </Button>
-              <Button className="w-full sm:w-auto bg-[#7F56D9] hover:bg-purple-700 text-white cursor-pointer" onClick={onClose}>
-                Apply
+              <Button className="w-full sm:w-auto bg-[#7F56D9] hover:bg-purple-700 text-white cursor-pointer" 
+                onClick={isEditMode ? handleTemplateSave : onClose}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <div className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    Saving...
+                  </div>
+                ) : (
+                  isEditMode ? "Save Template" : "Apply"
+                )}
               </Button>
             </div>
           </div>

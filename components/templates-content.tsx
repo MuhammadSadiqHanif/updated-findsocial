@@ -32,12 +32,26 @@ const PlatformIcon = ({ platform }: { platform: string }) => {
       return <Music className="w-4 h-4 text-[#667085]" />;
   }
 };
-export default function TemplatesContent() {
+export default function TemplatesContent({ 
+  onEditTemplate, 
+  refreshTrigger 
+}: { 
+  onEditTemplate?: (template: any) => void;
+  refreshTrigger?: number;
+}) {
   const { userId, isLoading } = useAuth();
   const [templates, setTemplates] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Edit template handler
+  const handleEdit = (template: any) => {
+    console.log("Edit template clicked:", template);
+    if (onEditTemplate) {
+      onEditTemplate(template);
+    }
+  };
   // Delete template handler
   const handleDelete = async (templateId: string) => {
     if (!userId || !templateId) return;
@@ -90,7 +104,7 @@ export default function TemplatesContent() {
       })
       .catch(() => setError("Failed to fetch templates."))
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, refreshTrigger]);
 
   return (
     <div className="p-4 md:p-6 lg:p-8">
@@ -170,6 +184,8 @@ export default function TemplatesContent() {
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0 cursor-pointer text-[#667085] hover:text-[#344054] hover:bg-[#f9fafb]"
+                          onClick={() => handleEdit(template)}
+                          title="Edit Template"
                         >
                           <svg
                             className="w-4 h-4"
@@ -191,6 +207,7 @@ export default function TemplatesContent() {
                           className="h-8 w-8 p-0 cursor-pointer text-[#667085] hover:text-[#da1e28] hover:bg-[#fef3f2]"
                           onClick={() => handleDelete(template.id)}
                           disabled={deletingId === template.id}
+                          title="Delete Template"
                         >
                           {deletingId === template.id ? (
                             <svg
@@ -264,6 +281,8 @@ export default function TemplatesContent() {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 text-[#667085] hover:text-[#344054] hover:bg-[#f9fafb]"
+                            onClick={() => handleEdit(template)}
+                            title="Edit Template"
                           >
                             <svg
                               className="w-4 h-4"

@@ -26,6 +26,171 @@ export default function StripeAuthPage() {
     return plans[planName] || 2500; // Default to Starter monthly
   };
 
+  // Handle payment success and update Auth0 user metadata
+  const handlePaymentSuccess = async (sessionId: string, planName: string, period: string) => {
+    try {
+      const customerId = await getUserMetadata(userId || '');
+      
+      if (!customerId?.app_metadata?.stripe_customer_id) {
+        console.error('No Stripe customer ID found');
+        throw new Error('No Stripe customer ID found');
+      }
+
+      // 1️⃣ GET /stripe-subscriptions
+      const subscriptionsResponse = await fetch(
+        `https://dev-api.findsocial.io/stripe-subscriptions?customer_id=${customerId.app_metadata.stripe_customer_id}`
+      );
+      
+      if (!subscriptionsResponse.ok) {
+        throw new Error('Failed to fetch subscriptions');
+      }
+      
+      const subscriptionsData = await subscriptionsResponse.json();
+      const subscriptionData = subscriptionsData[0];
+
+      // 2️⃣ GET /stripe-checkout-session
+      const checkoutResponse = await fetch(
+        `https://dev-api.findsocial.io/stripe-checkout-session?session_id=${sessionId}`
+      );
+      
+      if (!checkoutResponse.ok) {
+        throw new Error('Failed to fetch checkout session');
+      }
+      
+      const checkoutData = await checkoutResponse.json();
+
+      if (checkoutData?.status === 'complete') {
+        // 3️⃣ GET /stripe-plan-price
+        const priceResponse = await fetch(
+          `https://dev-api.findsocial.io/stripe-plan-price?price_id=${checkoutData?.metadata?.productId}`
+        );
+        
+        if (!priceResponse.ok) {
+          throw new Error('Failed to fetch price data');
+        }
+        
+        const priceData = await priceResponse.json();
+        
+        // Determine plan details based on price
+        const isYearly = priceData.data?.plan?.interval === 'year' || 
+                        priceData.data?.recurring?.interval === 'year' ||
+                        period === 'annual';
+        const amount = priceData.data?.unit_amount / 100; // Convert from cents
+
+        let detectedPlanName = '';
+        let credits = 0;
+        let searches = 0;
+        let results = 0;
+
+        // Map amount to plan name and credits exactly like App.js environment variables
+        if (isYearly) {
+          if (amount === 249) { // €249 yearly (REACT_APP_STRIPE_PRICE_STARTER_Yearly)
+            detectedPlanName = 'Starter';
+            credits = 1200; // REACT_APP_STRIPE_CREDITS_STARTER_Yearly equivalent
+          } else if (amount === 1920) { // €1920 yearly (REACT_APP_STRIPE_PRICE_MEDIUM_Yearly)
+            detectedPlanName = 'Medium';
+            credits = 120000; // REACT_APP_STRIPE_CREDITS_MEDIUM_Yearly equivalent
+          } else if (amount >= 2000) { // €2000+ yearly (REACT_APP_STRIPE_PRICE_PRO_Yearly)
+            detectedPlanName = 'Pro';
+            credits = 600000; // REACT_APP_STRIPE_CREDITS_PRO_Yearly equivalent
+          }
+        } else {
+          if (amount === 25) { // €25 monthly (REACT_APP_STRIPE_PRICE_STARTER_MONTHLY)
+            detectedPlanName = 'Starter';
+            credits = 100; // REACT_APP_STRIPE_CREDITS_STARTER_MONTHLY equivalent
+          } else if (amount === 160) { // €160 monthly (REACT_APP_STRIPE_PRICE_MEDIUM_MONTHLY)
+            detectedPlanName = 'Medium';
+            credits = 10000; // REACT_APP_STRIPE_CREDITS_MEDIUM_MONTHLY equivalent
+          } else if (amount >= 200) { // €200+ monthly (REACT_APP_STRIPE_PRICE_PRO_MONTHLY)
+            detectedPlanName = 'Pro';
+            credits = 50000; // REACT_APP_STRIPE_CREDITS_PRO_MONTHLY equivalent
+          }
+        }
+
+        // Use planName from URL or detected plan name
+        const finalPlanName = planName || detectedPlanName;
+
+        // Get existing user metadata first (similar to scrapper_frontend App.js)
+        const currentUserData = await getUserMetadata(userId || '');
+        
+        // Prepare user metadata update exactly like scrapper_frontend App.js
+        const user_metadata = isYearly ? {
+          subscriptionPlan: finalPlanName,
+          remainingCredits: credits + (currentUserData?.user_metadata?.remainingCredits || 0),
+          credits: credits + (currentUserData?.user_metadata?.credits || 0),
+          month: typeof subscriptionData?.start_date === 'string'
+            ? new Date(subscriptionData?.start_date)
+            : new Date(subscriptionData?.start_date * 1000),
+          result: currentUserData?.user_metadata?.result || 0,
+          search: currentUserData?.user_metadata?.search || 0,
+        } : {
+          subscriptionPlan: finalPlanName,
+          remainingCredits: credits + (currentUserData?.user_metadata?.remainingCredits || 0),
+          credits: credits + (currentUserData?.user_metadata?.credits || 0), 
+          month: typeof subscriptionData?.start_date === 'string'
+            ? new Date(subscriptionData?.start_date)
+            : new Date(subscriptionData?.start_date * 1000),
+          result: currentUserData?.user_metadata?.result || 0,
+          search: currentUserData?.user_metadata?.search || 0,
+        };
+
+        console.log('Updating Auth0 user metadata:', user_metadata);
+
+        // 4️⃣ Update Auth0 user metadata exactly like App.js using Management API
+        const managementTokenResponse = await fetch('/api/auth0/management-token', {
+          method: 'POST',
+        });
+        const managementTokenData = await managementTokenResponse.json();
+
+        const auth0UpdateResponse = await fetch(
+          `https://dev-findsocial.eu.auth0.com/api/v2/users/${userId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${managementTokenData.access_token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              user_metadata: {
+                ...user_metadata,
+                token: managementTokenData.access_token, // Include token like App.js
+              },
+            }),
+          }
+        );
+
+        if (auth0UpdateResponse.ok) {
+          console.log('✅ Auth0 user metadata updated successfully');
+          
+          // Set session data for success modal
+          setSessionData({
+            plan_name: finalPlanName,
+            amount_total: amount * 100, // Convert back to cents for display
+            status: "complete",
+            metadata: {
+              plan_name: finalPlanName,
+              billing_period: isYearly ? 'yearly' : 'monthly',
+            },
+            currency: priceData.data?.currency || 'eur',
+          });
+          
+          // Clear payment intent from localStorage
+          localStorage.removeItem('payment-intent');
+          
+        } else {
+          console.error('❌ Failed to update Auth0 user metadata');
+          throw new Error('Failed to update user metadata');
+        }
+      } else {
+        throw new Error('Payment session not complete');
+      }
+    } catch (error) {
+      console.error('Error handling payment success:', error);
+      setError('Failed to process payment success');
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const handleStripeAuth = async () => {
       try {
@@ -37,8 +202,11 @@ export default function StripeAuthPage() {
         console.log("URL Params:", { sessionId, plan, period });
         console.log("Plan from URL:", plan);
         
-        // If no session_id, show success popup directly with plan info
-        if (!sessionId) {
+        // If session_id exists, handle payment success and update Auth0
+        if (sessionId && userId) {
+          console.log("Processing payment success with session ID:", sessionId);
+          await handlePaymentSuccess(sessionId, plan, period);
+        } else if (!sessionId) {
           console.log("No session ID found, showing success popup directly");
           
           // Create mock session data for success popup

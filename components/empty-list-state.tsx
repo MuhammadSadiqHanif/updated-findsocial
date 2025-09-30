@@ -21,7 +21,7 @@ export function EmptyListState({ onAddRecords }: EmptyListStateProps) {
       </p>
 
       <Button
-        className="bg-[#7f56d9] hover:bg-[#6941c6] text-white px-6 py-2 rounded-lg flex items-center gap-2"
+        className="cursor-pointer bg-[#7f56d9] hover:bg-[#6941c6] text-white px-6 py-2 rounded-lg flex items-center gap-2"
         onClick={onAddRecords}
       >
         <Plus className="w-4 h-4" />

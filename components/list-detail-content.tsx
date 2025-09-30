@@ -123,6 +123,9 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<{ id: string; name: string; platform: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [showMobileExportMenu, setShowMobileExportMenu] = useState(false);
   
   const { toast } = useToast();
   const { userInfo } = useUserInfo();
@@ -189,6 +192,25 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [openDropdownId]);
+
+  // Close mobile export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      // Check if click is outside mobile export menu
+      if (!target.closest('.mobile-export-menu')) {
+        setShowMobileExportMenu(false);
+      }
+    };
+
+    if (showMobileExportMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMobileExportMenu]);
 
   // Filter handling functions
   const handlePlatformToggle = (platformId: string) => {
@@ -404,6 +426,116 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
     }
   };
 
+  // Handle export to CSV
+  const handleExportToCSV = async () => {
+    if (!userInfo?.user_id || !listId) {
+      toast({
+        title: "Error",
+        description: "Missing user information or list ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const response = await fetch(
+        `https://dev-api.findsocial.io/lists/${listId}/download/csv?auth0_id=${userInfo.user_id}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to export CSV: ${response.status}`);
+      }
+
+      // Get the CSV content
+      const csvContent = await response.text();
+      
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${listData?.list_name || 'list'}_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      toast({
+        title: "Success",
+        description: "CSV file has been downloaded successfully!",
+      });
+
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to export CSV. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Handle export to PDF
+  const handleExportToPDF = async () => {
+    if (!userInfo?.user_id || !listId) {
+      toast({
+        title: "Error",
+        description: "Missing user information or list ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExportingPDF(true);
+    try {
+      const response = await fetch(
+        `https://dev-api.findsocial.io/lists/${listId}/download/pdf?auth0_id=${userInfo.user_id}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to export PDF: ${response.status}`);
+      }
+
+      // Get the PDF content as blob
+      const pdfBlob = await response.blob();
+      
+      // Create blob and download
+      const link = document.createElement('a');
+      
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(pdfBlob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${listData?.list_name || 'list'}_export_${new Date().toISOString().split('T')[0]}.pdf`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      toast({
+        title: "Success",
+        description: "PDF file has been downloaded successfully!",
+      });
+
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to export PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
   // Get platform icon
   const getPlatformIcon = (platform: string): React.ReactElement | null => {
     switch (platform.toLowerCase()) {
@@ -519,11 +651,11 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
   }
 
   // Show empty state if no leads
-  if (!listData || listData.total_leads === 0) {
-    return (
-      <EmptyListState onAddRecords={() => setIsAddRecordsModalOpen(true)} />
-    );
-  }
+  // if (!listData || listData.total_leads === 0) {
+  //   return (
+  //     <EmptyListState onAddRecords={() =>  setIsAddRecordsModalOpen(true)} />
+  //   );
+  // }
 
   return (
     <div className="space-y-6">
@@ -531,10 +663,10 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-[#101828]">
-            {listData.list_name}
+            {listData?.list_name}
           </h1>
           <p className="text-sm text-[#667085]">
-            {listData.total_leads} leads
+            {listData?.total_leads} leads
           </p>
         </div>
       </div>
@@ -790,7 +922,8 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
             onClick={() => setIsAddRecordsModalOpen(true)}
           >
             <Plus className="w-4 h-4" />
-            Add Records
+            <span className="hidden sm:inline">Add Records</span>
+            <span className="sm:hidden">Add</span>
           </Button>
           <Button
             variant="outline"
@@ -800,12 +933,120 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
           >
             <Settings className="w-4 h-4" />
           </Button>
+          {/* Export Buttons - Hidden on small screens, shown in dropdown */}
+          <div className="hidden md:flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportToCSV}
+              disabled={isExporting}
+              className="cursor-pointer border-[#d0d5dd] text-[#667085] hover:bg-[#f9fafb] bg-transparent flex items-center gap-2"
+            >
+              {isExporting ? (
+                <>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Export CSV
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportToPDF}
+              disabled={isExportingPDF}
+              className="cursor-pointer border-[#d0d5dd] text-[#667085] hover:bg-[#f9fafb] bg-transparent flex items-center gap-2"
+            >
+              {isExportingPDF ? (
+                <>
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Export PDF
+                </>
+              )}
+            </Button>
+          </div>
+          
+          {/* Mobile Export Dropdown */}
+          <div className="md:hidden relative mobile-export-menu">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMobileExportMenu(!showMobileExportMenu)}
+              className="cursor-pointer p-2 border-[#d0d5dd] text-[#667085] hover:bg-[#f9fafb] bg-transparent"
+            >
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+            
+            {showMobileExportMenu && (
+              <div className="absolute right-0 mt-1 w-48 bg-white border border-[#eaecf0] rounded-lg shadow-lg z-50">
+                <div className="py-1">
+                  <button
+                    onClick={() => {
+                      handleExportToCSV();
+                      setShowMobileExportMenu(false);
+                    }}
+                    disabled={isExporting}
+                    className="w-full px-4 py-2 text-left text-sm text-[#344054] hover:bg-[#f9fafb] flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isExporting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                        Exporting CSV...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export CSV
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleExportToPDF();
+                      setShowMobileExportMenu(false);
+                    }}
+                    disabled={isExportingPDF}
+                    className="w-full px-4 py-2 text-left text-sm text-[#344054] hover:bg-[#f9fafb] flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {isExportingPDF ? (
+                      <>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                        Exporting PDF...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export PDF
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Bulk Actions Bar */}
       {selectedLeads.length > 0 && (
-        <div className="flex items-center justify-between bg-[#f0f9ff] border border-[#0ea5e9] rounded-lg px-4 py-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-[#f0f9ff] border border-[#0ea5e9] rounded-lg px-4 py-3 gap-3 sm:gap-0">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-[#0369a1]">
@@ -821,22 +1062,102 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
               </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <Button
               variant="outline"
               size="sm"
               onClick={handleBulkRemoveFromList}
-              className="cursor-pointer text-[#344054] border-[#d0d5dd] hover:bg-[#f9fafb]"
+              className="cursor-pointer text-[#344054] border-[#d0d5dd] hover:bg-[#f9fafb] flex-1 sm:flex-none"
             >
               Remove from List
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="cursor-pointer text-[#344054] border-[#d0d5dd] hover:bg-[#f9fafb]"
-            >
-              Export
-            </Button>
+            <div className="hidden sm:flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportToCSV}
+                disabled={isExporting}
+                className="cursor-pointer text-[#344054] border-[#d0d5dd] hover:bg-[#f9fafb] flex items-center gap-2"
+              >
+                {isExporting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                    Exporting...
+                  </>
+                ) : (
+                  'Export CSV'
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportToPDF}
+                disabled={isExportingPDF}
+                className="cursor-pointer text-[#344054] border-[#d0d5dd] hover:bg-[#f9fafb] flex items-center gap-2"
+              >
+                {isExportingPDF ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                    Exporting...
+                  </>
+                ) : (
+                  'Export PDF'
+                )}
+              </Button>
+            </div>
+            {/* Mobile Export Menu for Bulk Actions */}
+            <div className="sm:hidden relative mobile-export-menu">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMobileExportMenu(!showMobileExportMenu)}
+                className="cursor-pointer text-[#344054] border-[#d0d5dd] hover:bg-[#f9fafb] flex items-center gap-2"
+              >
+                Export
+                <ChevronDown className="w-3 h-3" />
+              </Button>
+              
+              {showMobileExportMenu && (
+                <div className="absolute right-0 mt-1 w-40 bg-white border border-[#eaecf0] rounded-lg shadow-lg z-50">
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        handleExportToCSV();
+                        setShowMobileExportMenu(false);
+                      }}
+                      disabled={isExporting}
+                      className="w-full px-4 py-2 text-left text-sm text-[#344054] hover:bg-[#f9fafb] flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isExporting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                          CSV...
+                        </>
+                      ) : (
+                        'Export CSV'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        handleExportToPDF();
+                        setShowMobileExportMenu(false);
+                      }}
+                      disabled={isExportingPDF}
+                      className="w-full px-4 py-2 text-left text-sm text-[#344054] hover:bg-[#f9fafb] flex items-center gap-2 disabled:opacity-50"
+                    >
+                      {isExportingPDF ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></div>
+                          PDF...
+                        </>
+                      ) : (
+                        'Export PDF'
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1185,7 +1506,7 @@ export function ListDetailContent({ listId }: ListDetailContentProps) {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="text-sm text-[#344054]">
           Total Records <span className="font-medium">{filteredLeads.length}</span> of{" "}
-          <span className="font-medium">{listData.total_leads}</span> • Showing per
+          <span className="font-medium">{listData?.total_leads}</span> • Showing per
           page{" "}
           <select className="border border-[#d0d5dd] rounded px-2 py-1 text-sm">
             <option>10</option>

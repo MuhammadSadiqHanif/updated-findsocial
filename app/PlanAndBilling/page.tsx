@@ -29,7 +29,7 @@ import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 
 const PlanAndBillingPage = () => {
-  const { userId, isLoading, isLoggedIn, apiCall, userInfo } = useAuth();
+  const { userId, isLoading, isLoggedIn, userInfo, refreshUserInfo } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [currentPlan, setCurrentPlan] = useState("free"); // This would come from your API
@@ -392,7 +392,7 @@ const PlanAndBillingPage = () => {
           { name: "YouTube search", included: true },
           { name: "Deep search", included: true },
           { name: "Exports of results", included: true },
-          { name: "Priority support", included: true },
+          { name: "Priority support", included: false },
           { name: "Direct message", included: false },
         ],
         popular: true,
@@ -641,6 +641,9 @@ const PlanAndBillingPage = () => {
   console.log("=== PLAN FEATURES DEBUG ===");
   console.log("subscriptionData.length:", subscriptionData.length);
   console.log("currentPlan:", currentPlan);
+  console.log("userInfo:", userInfo);
+  console.log("userInfo?.user_metadata:", userInfo?.user_metadata);
+  console.log("userInfo structure:", JSON.stringify(userInfo, null, 2));
   console.log("Looking for plan ID:", subscriptionData.length > 0 ? currentPlan : "free");
   console.log("activePlans:", activePlans.map(p => ({ id: p.id, name: p.name, featuresCount: p.features?.length })));
   console.log("currentPlanData:", currentPlanData ? { id: currentPlanData.id, name: currentPlanData.name, featuresCount: currentPlanData.features?.length } : "NOT FOUND");
@@ -834,9 +837,20 @@ const PlanAndBillingPage = () => {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg font-semibold text-[#101828]">
-                        Credit Usage
-                      </CardTitle>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg font-semibold text-[#101828]">
+                          Credit Usage
+                        </CardTitle>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={refreshUserInfo}
+                          disabled={isLoading}
+                          className="cursor-pointer text-[#7f56d9] border-[#7f56d9] hover:bg-[#7f56d9] hover:text-white bg-transparent"
+                        >
+                          {isLoading ? 'Refreshing...' : 'Refresh'}
+                        </Button>
+                      </div>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       <div>
@@ -845,10 +859,22 @@ const PlanAndBillingPage = () => {
                             Searches completed
                           </span>
                           <span className="text-sm text-[#667085]">
-                            4078/ 10000
+                            {isLoading ? (
+                              <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                            ) : (
+                              `${userInfo?.user_metadata?.search || 0}/ ${Math.floor((userInfo?.user_metadata?.credits || 0) / 1000) || 'Unlimited'}`
+                            )}
                           </span>
                         </div>
-                        <Progress value={40.78} className="h-2" />
+                        <Progress 
+                          value={
+                            isLoading || !userInfo?.user_metadata?.credits ? 0 :
+                            userInfo?.user_metadata?.credits > 0 
+                              ? ((userInfo?.user_metadata?.search || 0) / Math.floor(userInfo?.user_metadata?.credits / 1000)) * 100 
+                              : 0
+                          } 
+                          className="h-2" 
+                        />
                       </div>
 
                       <div>
@@ -857,10 +883,77 @@ const PlanAndBillingPage = () => {
                             Results generated
                           </span>
                           <span className="text-sm text-[#667085]">
-                            5048/ 10000
+                            {isLoading ? (
+                              <div className="animate-pulse bg-gray-200 h-4 w-16 rounded"></div>
+                            ) : (
+                              `${userInfo?.user_metadata?.result || 0}/ ${Math.floor((userInfo?.user_metadata?.credits || 0) / 25) || 'Unlimited'}`
+                            )}
                           </span>
                         </div>
-                        <Progress value={50.48} className="h-2" />
+                        <Progress 
+                          value={
+                            isLoading || !userInfo?.user_metadata?.credits ? 0 :
+                            userInfo?.user_metadata?.credits > 0 
+                              ? ((userInfo?.user_metadata?.result || 0) / Math.floor(userInfo?.user_metadata?.credits / 25)) * 100 
+                              : 0
+                          } 
+                          className="h-2" 
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium text-[#344054]">
+                            Remaining Credits
+                          </span>
+                          <span className="text-sm text-[#667085]">
+                            {isLoading ? (
+                              <div className="animate-pulse bg-gray-200 h-4 w-20 rounded"></div>
+                            ) : (
+                              `${(userInfo?.user_metadata?.remainingCredits || 0).toLocaleString()}/ ${(userInfo?.user_metadata?.credits || 0).toLocaleString()}`
+                            )}
+                          </span>
+                        </div>
+                        <Progress 
+                          value={
+                            isLoading || !userInfo?.user_metadata?.credits ? 0 :
+                            userInfo?.user_metadata?.credits > 0 
+                              ? ((userInfo?.user_metadata?.remainingCredits || 0) / userInfo?.user_metadata?.credits) * 100 
+                              : 0
+                          } 
+                          className="h-2" 
+                        />
+                      </div>
+
+                      {/* Plan Information */}
+                      <div className="mt-4 p-3 bg-[#f9fafb] rounded-lg border border-[#eaecf0]">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-medium text-[#101828]">
+                              {isLoading ? (
+                                <div className="animate-pulse bg-gray-200 h-4 w-24 rounded"></div>
+                              ) : (
+                                `Current Plan: ${userInfo?.user_metadata?.subscriptionPlan || 'Free'}`
+                              )}
+                            </p>
+                            <p className="text-xs text-[#667085]">
+                              {isLoading ? (
+                                <div className="animate-pulse bg-gray-200 h-3 w-32 rounded mt-1"></div>
+                              ) : (
+                                `Next renewal: ${userInfo?.user_metadata?.month ? new Date(userInfo.user_metadata.month).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                }) : 'N/A'}`
+                              )}
+                            </p>
+                          </div>
+                          {!isLoading && userInfo?.user_metadata?.freeVersion === 'claimed' && (
+                            <Badge className="bg-[#17b26a] hover:bg-[#17b26a] text-white text-xs">
+                              Free Version Claimed
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -869,7 +962,7 @@ const PlanAndBillingPage = () => {
                 {/* Right column - Plan Details */}
                 <div className="xl:col-span-1">
                   <Card className="sticky top-4">
-                    <CardHeader className="text-center pb-4">
+                    <CardHeader className="text-center pb-0">
                       <div className="flex justify-center mb-2">
                         <Badge className="bg-[#1570ef] hover:bg-[#1570ef] text-white">
                           Current Plan
