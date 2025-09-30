@@ -5,9 +5,11 @@ import Spotify from "@/public/platform/spotify.png";
 import { ChevronDown, Eye, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { StatusBadge } from "./status-badge";
 
 export function HistoryQueue({ userId }: { userId: string | null }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tasks, setTasks] = useState<any>({
@@ -139,6 +141,7 @@ export function HistoryQueue({ userId }: { userId: string | null }) {
                             variant="ghost"
                             size="icon"
                             className="text-[#667085] hover:text-[#344054]"
+                            onClick={() => router.push(`/Leads?search=${encodeURIComponent(item.search)}`)}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -189,6 +192,7 @@ export function HistoryQueue({ userId }: { userId: string | null }) {
                             variant="ghost"
                             size="icon"
                             className="text-[#667085] hover:text-[#344054]"
+                            onClick={() => router.push(`/Leads?search=${encodeURIComponent(item.search)}`)}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>

@@ -308,6 +308,7 @@ export default function SearchInterface() {
             filters.min_posts = platformSettings.postsRange[0];
             filters.max_posts = platformSettings.postsRange[1];
           } else if (platformKey === "tiktok") {
+            platformName="TikTok";
             if (platformSettings.verified)
               filters.verified = platformSettings.verified;
             if (platformSettings.email) filters.email = platformSettings.email;
@@ -326,6 +327,7 @@ export default function SearchInterface() {
             filters.min_friendscount = platformSettings.friendscount[0];
             filters.max_friendscount = platformSettings.friendscount[1];
           } else if (platformKey === "youtube") {
+            platformName="YouTube";
             if (platformSettings.email) filters.email = platformSettings.email;
             if (platformSettings.instagram)
               filters.instagram = platformSettings.instagram;
@@ -336,6 +338,7 @@ export default function SearchInterface() {
             filters.min_views_count = platformSettings.views_count[0];
             filters.max_views_count = platformSettings.views_count[1];
           } else if (platformKey === "spotify_playlist") {
+            platformName="Spotify_Playlists";
             if (platformSettings.collaborative)
               filters.collaborative = platformSettings.collaborative;
             if (platformSettings.public)
@@ -347,6 +350,7 @@ export default function SearchInterface() {
             filters.min_tracks = platformSettings.tracks[0];
             filters.max_tracks = platformSettings.tracks[1];
           } else if (platformKey === "spotify_artist") {
+            platformName="Spotify_Artists";
             if (platformSettings.verified)
               filters.verified = platformSettings.verified;
             filters.min_followers = platformSettings.followers[0];
@@ -354,6 +358,7 @@ export default function SearchInterface() {
             filters.min_listens = platformSettings.listens[0];
             filters.max_listens = platformSettings.listens[1];
           } else if (platformKey === "soundcloud") {
+            platformName="SoundCloud";
             if (platformSettings.creator_subscription)
               filters.creator_subscription =
                 platformSettings.creator_subscription;

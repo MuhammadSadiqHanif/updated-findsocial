@@ -1,20 +1,24 @@
 "use client"
 
-import { useState } from "react"
-import OnboardingFlow from "@/components/onboarding-flow"
-import Dashboard from "@/components/dashboard"
-import { useRouter } from "next/navigation"; 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [showDashboard, setShowDashboard] = useState(false)
   const router = useRouter();
-  const handleOnboardingComplete = () => {
-    router.push('/Dashboard');
-  }
 
-  return (
-    <div className="min-h-screen bg-white">
-      <OnboardingFlow onComplete={handleOnboardingComplete} />
-    </div>
-  )
+  useEffect(() => {
+    // Check login status (token or user in localStorage/sessionStorage)
+    let isLoggedIn = false;
+    if (typeof window !== "undefined") {
+      // Example: check for Auth0 id_token or your own login flag
+      isLoggedIn = !!localStorage.getItem("auth0CIdToken") || !!localStorage.getItem("isLoggedIn");
+    }
+    if (isLoggedIn) {
+      router.replace("/Dashboard");
+    } else {
+      router.replace("/login");
+    }
+  }, [router]);
+
+  return null;
 }

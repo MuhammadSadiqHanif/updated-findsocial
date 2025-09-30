@@ -11,6 +11,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { getUserMetadata } from "@/lib/auth";
 
+// Subscription type for fetched data
+interface Subscription {
+  plan?: { interval?: string; amount?: number };
+  start_date?: string | number;
+}
+
 interface Plan {
   name: string;
   price: number;
@@ -26,11 +32,10 @@ const plans: Plan[] = [
     name: "Free plan",
     price: 0,
     period: "Month",
-    billing: "Bill Annually",
-    description: "Best suits for medium size businesses",
+    billing: "Always Free",
+    description: "Perfect for getting started",
     features: [
-      { name: "5 searches per month", included: true },
-      { name: "250 results per month", included: true },
+      { name: "100 credits per month", included: true },
       { name: "Instagram search", included: true },
       { name: "Instagram URL imports feature", included: true },
       { name: "Spotify artists search", included: true },
@@ -38,21 +43,21 @@ const plans: Plan[] = [
       { name: "SoundCloud search", included: true },
       { name: "TikTok search", included: true },
       { name: "YouTube search", included: true },
+      { name: "Twitter search", included: true },
       { name: "Deep search", included: false },
-      { name: "Exports of results", included: false },
+      { name: "Export of results", included: false },
       { name: "Priority support", included: false },
       { name: "Direct message", included: false },
     ],
   },
   {
     name: "Starter",
-    price: 22,
-    period: "Month",
-    billing: "Bill Annually",
-    description: "Best suits for medium size businesses",
+    price: 25,
+    period: "Month", 
+    billing: "Bill Monthly",
+    description: "Best suits for small businesses",
     features: [
-      { name: "100 searches per month", included: true },
-      { name: "2500 results per month", included: true },
+      { name: "1000 credits per month", included: true },
       { name: "Instagram search", included: true },
       { name: "Instagram URL imports feature", included: true },
       { name: "Spotify artists search", included: true },
@@ -60,22 +65,21 @@ const plans: Plan[] = [
       { name: "SoundCloud search", included: true },
       { name: "TikTok search", included: true },
       { name: "YouTube search", included: true },
-      { name: "Deep search", included: true },
-      { name: "Exports of results", included: true },
-      { name: "Priority support", included: true },
+      { name: "Twitter search", included: true },
+      { name: "Export of results", included: true },
+      { name: "Priority support", included: false },
       { name: "Direct message", included: false },
     ],
   },
   {
-    name: "Professional",
-    price: 88,
+    name: "Medium",
+    price: 100,
     period: "Month",
-    billing: "Bill Annually",
+    billing: "Bill Monthly", 
     description: "Best suits for medium size businesses",
     isBestValue: true,
     features: [
-      { name: "1000 searches per month", included: true },
-      { name: "25000 results per month", included: true },
+      { name: "10000 credits per month", included: true },
       { name: "Instagram search", included: true },
       { name: "Instagram URL imports feature", included: true },
       { name: "Spotify artists search", included: true },
@@ -83,21 +87,20 @@ const plans: Plan[] = [
       { name: "SoundCloud search", included: true },
       { name: "TikTok search", included: true },
       { name: "YouTube search", included: true },
-      { name: "Deep search", included: true },
-      { name: "Exports of results", included: true },
+      { name: "Twitter search", included: true },
+      { name: "Export of results", included: true },
       { name: "Priority support", included: true },
       { name: "Direct message", included: false },
     ],
   },
   {
-    name: "Business",
-    price: 176,
+    name: "Pro",
+    price: 200,
     period: "Month",
-    billing: "Bill Annually",
-    description: "Best suits for medium size businesses",
+    billing: "Bill Monthly",
+    description: "Best suits for large businesses", 
     features: [
-      { name: "10000 searches per month", included: true },
-      { name: "100000 results per month", included: true },
+      { name: "50000 credits per month", included: true },
       { name: "Instagram search", included: true },
       { name: "Instagram URL imports feature", included: true },
       { name: "Spotify artists search", included: true },
@@ -105,8 +108,8 @@ const plans: Plan[] = [
       { name: "SoundCloud search", included: true },
       { name: "TikTok search", included: true },
       { name: "YouTube search", included: true },
-      { name: "Deep search", included: true },
-      { name: "Exports of results", included: true },
+      { name: "Twitter search", included: true },
+      { name: "Export of results", included: true },
       { name: "Priority support", included: true },
       { name: "Direct message", included: true },
     ],
@@ -128,6 +131,11 @@ export default function UpgradePlanPage({ onBack }: UpgradePlanPageProps) {
   const [loadingPrices, setLoadingPrices] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
+  // Subscription state
+  const [subscription, setSubscription] = useState<Subscription[] | null>(null);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<string | null>(null);
+
   // Function to create Stripe checkout session
   const createCheckoutSession = async (priceId: string, planName: string) => {
     setCheckoutLoading(planName);
@@ -135,8 +143,6 @@ export default function UpgradePlanPage({ onBack }: UpgradePlanPageProps) {
        const CustomerId= await getUserMetadata(userId || '');
         console.log(CustomerId,"userInfo");
         
-    //   const stripeCustomerId = await getStripeCustomerId();
-      
       if (!CustomerId?.app_metadata?.stripe_customer_id) {
         console.error('No Stripe customer ID found');
         alert('Unable to process payment. Please contact support.');
@@ -147,13 +153,19 @@ export default function UpgradePlanPage({ onBack }: UpgradePlanPageProps) {
         customer_id: CustomerId?.app_metadata?.stripe_customer_id,
         price_id: priceId,
         currency: "usd",
+        query_string: `?plan=${planName}&period=${billingPeriod}`,
         metadata: {
+          customerId: CustomerId?.app_metadata?.stripe_customer_id,
+          productId: priceId,
           user_id: userId,
           plan_name: planName,
           billing_period: billingPeriod
         },
-        query_string: `plan=${planName}&period=${billingPeriod}`
+        success_url: `${window.location.origin}/stripe-auth?session_id={CHECKOUT_SESSION_ID}&plan=${planName}&period=${billingPeriod}`,
+        cancel_url: `${window.location.origin}/upgrade-plan?canceled=true`
       };
+
+      console.log("Checkout Data:", checkoutData);
 
       const response = await fetch('https://dev-api.findsocial.io/stripe-checkout', {
         method: 'POST',
@@ -165,22 +177,62 @@ export default function UpgradePlanPage({ onBack }: UpgradePlanPageProps) {
 
       if (response.ok) {
         const checkoutSession = await response.json();
+        console.log("Checkout Session Response:", checkoutSession);
+        
         if (checkoutSession.url) {
-          // Redirect to Stripe checkout
-          window.location.href = checkoutSession.url;
+          // Store payment intent and redirect to Stripe checkout
+          localStorage.setItem('payment-intent', checkoutSession?.session_id);
+          console.log("Redirecting to:", checkoutSession.url);
+          window.location.assign(checkoutSession.url);
         } else {
           console.error('No checkout URL received');
           alert('Unable to create checkout session. Please try again.');
         }
       } else {
-        console.error('Failed to create checkout session:', response.status);
+        const errorText = await response.text();
+        console.error('Failed to create checkout session:', response.status, errorText);
         alert('Unable to create checkout session. Please try again.');
       }
+      // After purchase, refetch subscription
+      fetchUserSubscription();
     } catch (error) {
       console.error('Error creating checkout session:', error);
       alert('An error occurred while processing your request. Please try again.');
     } finally {
       setCheckoutLoading(null);
+    }
+  };
+
+  // Fetch user subscription from backend
+  const fetchUserSubscription = async () => {
+    setSubscriptionLoading(true);
+    try {
+      const CustomerId = await getUserMetadata(userId || '');
+      if (!CustomerId?.app_metadata?.stripe_customer_id) {
+        setSubscription(null);
+        setCurrentPlan(null);
+        return;
+      }
+      const response = await fetch(`https://dev-api.findsocial.io/stripe-subscriptions?customer_id=${CustomerId.app_metadata.stripe_customer_id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSubscription(data);
+        // Set current plan name if available
+        if (data && data.length > 0 && data[0]?.plan) {
+          // You can map amount to plan name if needed
+          setCurrentPlan(data[0].plan.interval === 'year' ? 'Yearly' : 'Monthly');
+        } else {
+          setCurrentPlan(null);
+        }
+      } else {
+        setSubscription(null);
+        setCurrentPlan(null);
+      }
+    } catch (err) {
+      setSubscription(null);
+      setCurrentPlan(null);
+    } finally {
+      setSubscriptionLoading(false);
     }
   };
 
@@ -243,21 +295,22 @@ export default function UpgradePlanPage({ onBack }: UpgradePlanPageProps) {
     }
   }, [isLoading, isLoggedIn, router]);
 
-  // Check for checkout success/cancel in URL parameters
+  // Fetch user subscription on mount and when userId changes
+  useEffect(() => {
+    if (userId) {
+      fetchUserSubscription();
+    }
+  }, [userId]);
+
+  // Check for checkout canceled in URL parameters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('session_id');
-    const success = urlParams.get('success');
     const canceled = urlParams.get('canceled');
 
-    if (sessionId && success === 'true') {
-      // Handle successful checkout
-      console.log('Checkout successful, session ID:', sessionId);
-      // You might want to verify the session and update user subscription
-      // verifyCheckoutSession(sessionId);
-    } else if (canceled === 'true') {
+    if (canceled === 'true') {
       // Handle canceled checkout
       console.log('Checkout was canceled');
+      // You could show a toast or modal here
     }
   }, []);
 
@@ -496,9 +549,19 @@ export default function UpgradePlanPage({ onBack }: UpgradePlanPageProps) {
               <h1 className="text-4xl lg:text-5xl font-bold text-[#101828] mb-4">
                 Upgrade Your Plan
               </h1>
-              <p className="text-lg text-[#667085] mb-8">
+
+              <div className="text-lg text-[#667085] mb-8">
                 Choose the perfect plan for your business
-              </p>
+              </div>
+
+              {/* Show current plan */}
+              {subscriptionLoading ? (
+                <div className="text-center text-[#7f56d9]">Loading your subscription...</div>
+              ) : currentPlan ? (
+                <div className="text-center text-[#16b364] font-semibold">Current Plan: {currentPlan}</div>
+              ) : (
+                <div className="text-center text-[#d92d20]">No active subscription</div>
+              )}
 
               {/* Billing Toggle */}
               <div className="inline-flex items-center bg-white rounded-full p-1 border border-[#d0d5dd]">
@@ -620,7 +683,7 @@ export default function UpgradePlanPage({ onBack }: UpgradePlanPageProps) {
                           <span>Processing...</span>
                         </div>
                       ) : plan.name === "Free plan" ? (
-                        "Current Plan"
+                      currentPlan === 'Free' ? "Current Plan" : "Choose Free Plan"
                       ) : (
                         "Upgrade Plan"
                       )}

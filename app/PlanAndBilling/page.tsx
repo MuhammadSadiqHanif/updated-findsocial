@@ -46,13 +46,15 @@ const PlanAndBillingPage = () => {
   const fetchPricingData = async () => {
     setLoadingPrices(true);
     try {
-      const response = await fetch('https://dev-api.findsocial.io/stripe-prices');
+      const response = await fetch(
+        "https://dev-api.findsocial.io/stripe-prices"
+      );
       if (response.ok) {
         const data = await response.json();
         setPricingData(data);
       }
     } catch (error) {
-      console.error('Error fetching pricing data:', error);
+      console.error("Error fetching pricing data:", error);
     } finally {
       setLoadingPrices(false);
     }
@@ -64,50 +66,64 @@ const PlanAndBillingPage = () => {
     try {
       // Get stripe customer ID from Auth0 Management API
       let stripeCustomerId = null;
-      
+
       if (userId) {
         try {
           // Encode the userId for URL (replace | with %7C)
           const encodedUserId = encodeURIComponent(userId);
-          const auth0UserResponse = await fetch(`https://dev-findsocial.eu.auth0.com/api/v2/users/${encodedUserId}`, {
-            headers: {
-              'Authorization': `Bearer ${userInfo?.user_metadata?.token || ''}`
+          const auth0UserResponse = await fetch(
+            `https://dev-findsocial.eu.auth0.com/api/v2/users/${encodedUserId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${userInfo?.user_metadata?.token || ""}`,
+              },
             }
-          });
-          
+          );
+
           if (auth0UserResponse.ok) {
             const auth0UserData = await auth0UserResponse.json();
-            console.log('Auth0 user data:', auth0UserData);
-            
+            console.log("Auth0 user data:", auth0UserData);
+
             // Get stripe_customer_id from app_metadata
-            if (auth0UserData.app_metadata && auth0UserData.app_metadata.stripe_customer_id) {
+            if (
+              auth0UserData.app_metadata &&
+              auth0UserData.app_metadata.stripe_customer_id
+            ) {
               stripeCustomerId = auth0UserData.app_metadata.stripe_customer_id;
-              console.log('Found stripe_customer_id in app_metadata:', stripeCustomerId);
+              console.log(
+                "Found stripe_customer_id in app_metadata:",
+                stripeCustomerId
+              );
             }
           } else {
-            console.error('Failed to fetch Auth0 user data:', auth0UserResponse.status);
+            console.error(
+              "Failed to fetch Auth0 user data:",
+              auth0UserResponse.status
+            );
           }
         } catch (auth0Error) {
-          console.error('Error fetching Auth0 user data:', auth0Error);
+          console.error("Error fetching Auth0 user data:", auth0Error);
         }
       }
-      
+
       // Fallback to hardcoded ID if not found
       if (!stripeCustomerId) {
-        console.warn('Stripe customer ID not found in Auth0, using fallback');
+        console.warn("Stripe customer ID not found in Auth0, using fallback");
         stripeCustomerId = "cus_SW01RY9rUuyDMW";
       }
-      
-      const response = await fetch(`https://dev-api.findsocial.io/stripe-subscriptions?customer_id=${stripeCustomerId}`);
+
+      const response = await fetch(
+        `https://dev-api.findsocial.io/stripe-subscriptions?customer_id=${stripeCustomerId}`
+      );
       if (response.ok) {
         const data = await response.json();
         setSubscriptionData(data);
-        console.log('Successfully loaded subscriptions:', data.length);
+        console.log("Successfully loaded subscriptions:", data.length);
       } else {
-        console.error('Failed to fetch subscriptions:', response.status);
+        console.error("Failed to fetch subscriptions:", response.status);
       }
     } catch (error) {
-      console.error('Error fetching subscription data:', error);
+      console.error("Error fetching subscription data:", error);
     } finally {
       setLoadingSubscriptions(false);
     }
@@ -122,7 +138,7 @@ const PlanAndBillingPage = () => {
   // Fetch pricing data and subscription data on component mount
   useEffect(() => {
     fetchPricingData();
-    
+
     // Only fetch subscriptions if we have userId and userInfo
     if (userId && userInfo) {
       fetchSubscriptionData();
@@ -131,71 +147,169 @@ const PlanAndBillingPage = () => {
 
   // Helper function to format timestamp to readable date
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(timestamp * 1000).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
-  // Helper function to get plan name from product ID
-  const getPlanName = (productId: string) => {
-    const planNames: { [key: string]: string } = {
-      'prod_PNxHmYORboUyb7': 'Professional'
-    };
-    return planNames[productId] || 'Unknown Plan';
+  // Helper function to get plan name from amount and interval
+  const getPlanName = (
+    amount: number,
+    currency: string = "eur",
+    interval: string = "year"
+  ) => {
+    console.log("getPlanName called with:", { amount, currency, interval });
+
+    // Amount is in cents, so divide by 100 to get actual amount
+    const actualAmount = amount / 100;
+    console.log("Actual amount:", actualAmount, currency.toUpperCase());
+
+    if (interval === "year") {
+      // Yearly plans - corrected mapping
+      if (actualAmount <= 250) {
+        // 24900 cents = 249 EUR (Starter yearly)
+        console.log("Detected plan: Starter (yearly)");
+        return "Starter";
+      } else if (actualAmount <= 1000) {
+        // Medium plan range
+        console.log("Detected plan: Professional (yearly)");
+        return "Professional";
+      } else {
+        // 192000 cents = 1920 EUR (Professional yearly)
+        console.log("Detected plan: Business (yearly)");
+        return "Business";
+      }
+    } else {
+      // Monthly plans
+      if (actualAmount <= 25) {
+        console.log("Detected plan: Starter (monthly)");
+        return "Starter";
+      } else if (actualAmount <= 100) {
+        console.log("Detected plan: Professional (monthly)");
+        return "Professional";
+      } else {
+        console.log("Detected plan: Business (monthly)");
+        return "Business";
+      }
+    }
   };
 
   // Helper function to format price from cents to dollars
-  const formatPrice = (amountInCents: number, currency: string = 'usd') => {
+  const formatPrice = (amountInCents: number, currency: string = "usd") => {
     const amount = amountInCents / 100;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
       currency: currency.toUpperCase(),
     }).format(amount);
   };
 
   // Helper function to get price for specific currency and plan
-  const getPriceForPlan = (price: any, currency: string = 'usd') => {
+  const getPriceForPlan = (price: any, currency: string = "usd") => {
     if (price.currency_options && price.currency_options[currency]) {
       return price.currency_options[currency].unit_amount;
     }
     return price.unit_amount;
   };
+  console.log(subscriptionData);
 
   // Process subscription data for display
   const processedSubscriptions = subscriptionData.map((subscription: any) => {
     const plan = subscription.plan || subscription.items?.data[0]?.plan;
-    const planName = getPlanName(plan?.product || '');
     const amount = plan?.amount || 0;
     const currency = plan?.currency || subscription.currency;
-    
+    const interval = plan?.interval || "month";
+    const planName = getPlanName(amount, currency, interval);
+
+    console.log("Processing subscription:", {
+      id: subscription.id,
+      amount,
+      currency,
+      interval,
+      planName,
+      status: subscription.status,
+    });
+
     return {
       id: subscription.id,
       title: planName,
       price: formatPrice(amount, currency),
       startPeriod: formatDate(subscription.start_date),
-      endPeriod: formatDate(subscription.current_period_end || subscription.items?.data[0]?.current_period_end),
-      recurring: plan?.interval === 'year' ? 'Annually' : 'Monthly',
-      status: subscription.status === 'active' ? 'Active' : subscription.status,
-      statusColor: subscription.status === 'active' ? 'bg-[#1570ef]' : 'bg-[#da1e28]',
+      endPeriod: formatDate(
+        subscription.current_period_end ||
+          subscription.items?.data[0]?.current_period_end
+      ),
+      recurring: interval === "year" ? "Annually" : "Monthly",
+      status: subscription.status === "active" ? "Active" : subscription.status,
+      statusColor:
+        subscription.status === "active" ? "bg-[#1570ef]" : "bg-[#da1e28]",
       raw: subscription, // Keep raw data for reference
+      created: subscription.created, // Add created timestamp for sorting
     };
   });
 
-  // Get current active plan from subscriptions
+  // Get current active plan from subscriptions (most recent active subscription)
   const getCurrentPlanFromSubscriptions = () => {
-    const activeSubscription = subscriptionData.find((sub: any) => sub.status === 'active');
-    if (activeSubscription) {
-      const plan = activeSubscription.plan || activeSubscription.items?.data[0]?.plan;
-      const planName = getPlanName(plan?.product || '');
-      return planName.toLowerCase();
+    console.log("Getting current plan from subscriptions...");
+    const activeSubscriptions = subscriptionData.filter(
+      (sub: any) => sub.status === "active"
+    );
+    console.log("Active subscriptions found:", activeSubscriptions.length);
+
+    if (activeSubscriptions.length === 0) {
+      console.log("No active subscriptions found");
+      return "free";
     }
-    return 'free';
+
+    // Sort by creation date (most recent first)
+    const sortedSubscriptions = activeSubscriptions.sort(
+      (a: any, b: any) => b.created - a.created
+    );
+    console.log("Sorted subscriptions by creation date");
+
+    const mostRecentSubscription = sortedSubscriptions[0];
+    console.log("Most recent subscription:", mostRecentSubscription.id);
+
+    const plan =
+      mostRecentSubscription.plan ||
+      mostRecentSubscription.items?.data[0]?.plan;
+    const amount = plan?.amount || 0;
+    const currency = plan?.currency || "eur";
+    const interval = plan?.interval || "year";
+
+    console.log("Plan details:", { amount, currency, interval });
+
+    const planName = getPlanName(amount, currency, interval);
+    console.log("Final plan name:", planName);
+
+    // Map plan names to proper IDs for plan matching
+    const planNameToId = {
+      Starter: "starter",
+      Professional: "professional",
+      Business: "business",
+      Enterprise: "enterprise",
+    };
+
+    const planId =
+      planNameToId[planName as keyof typeof planNameToId] ||
+      planName.toLowerCase();
+    console.log("Mapped plan ID:", planId);
+
+    return planId;
   };
 
   // Update current plan based on subscriptions
   const currentPlanFromAPI = getCurrentPlanFromSubscriptions();
+
+  // Update the currentPlan state when subscription data changes
+  useEffect(() => {
+    if (subscriptionData.length > 0) {
+      const detectedPlan = getCurrentPlanFromSubscriptions();
+      console.log("Updating current plan to:", detectedPlan);
+      setCurrentPlan(detectedPlan);
+    }
+  }, [subscriptionData]);
 
   // Create dynamic plans from API data
   const createPlansFromAPI = () => {
@@ -204,8 +318,12 @@ const PlanAndBillingPage = () => {
     }
 
     const prices = pricingData.prices;
-    const monthlyPrices = prices.filter((p: any) => p.recurring?.interval === 'month');
-    const yearlyPrices = prices.filter((p: any) => p.recurring?.interval === 'year');
+    const monthlyPrices = prices.filter(
+      (p: any) => p.recurring?.interval === "month"
+    );
+    const yearlyPrices = prices.filter(
+      (p: any) => p.recurring?.interval === "year"
+    );
 
     // Sort by price
     monthlyPrices.sort((a: any, b: any) => a.unit_amount - b.unit_amount);
@@ -220,48 +338,62 @@ const PlanAndBillingPage = () => {
         priceId: { monthly: null, yearly: null },
         icon: <Star className="w-6 h-6" />,
         features: [
-          { name: "100 leads per month", included: true },
-          { name: "1 list", included: true },
-          { name: "Basic search filters", included: true },
-          { name: "Email support", included: true },
-          { name: "Advanced analytics", included: false },
-          { name: "Custom templates", included: false },
+          { name: "5 searches per month", included: true },
+          { name: "250 results per month", included: true },
+          { name: "Instagram search", included: true },
+          { name: "Instagram URL imports feature", included: true },
+          { name: "Spotify artists search", included: true },
+          { name: "Spotify playlists search", included: true },
+          { name: "SoundCloud search", included: true },
+          { name: "TikTok search", included: true },
+          { name: "YouTube search", included: true },
+          { name: "Deep search", included: false },
+          { name: "Exports of results", included: false },
           { name: "Priority support", included: false },
-          { name: "API access", included: false },
+          { name: "Direct message", included: false },
         ],
         popular: false,
-      }
+      },
     ];
 
     // Add plans based on API data
     if (monthlyPrices.length >= 1) {
       const starterMonthly = monthlyPrices[0];
-      const starterYearly = yearlyPrices.find((p: any) => 
-        getPriceForPlan(p, 'usd') <= getPriceForPlan(starterMonthly, 'usd') * 10
+      const starterYearly = yearlyPrices.find(
+        (p: any) =>
+          getPriceForPlan(p, "usd") <=
+          getPriceForPlan(starterMonthly, "usd") * 10
       );
 
       dynamicPlans.push({
         id: "starter",
         name: "Starter",
         description: "For growing businesses",
-        price: { 
-          monthly: getPriceForPlan(starterMonthly, 'usd') / 100,
-          yearly: starterYearly ? getPriceForPlan(starterYearly, 'usd') / 100 : (getPriceForPlan(starterMonthly, 'usd') * 10) / 100
+        price: {
+          monthly: getPriceForPlan(starterMonthly, "usd") / 100,
+          yearly: starterYearly
+            ? getPriceForPlan(starterYearly, "usd") / 100
+            : (getPriceForPlan(starterMonthly, "usd") * 10) / 100,
         },
-        priceId: { 
-          monthly: starterMonthly.id, 
-          yearly: starterYearly?.id || null
+        priceId: {
+          monthly: starterMonthly.id,
+          yearly: starterYearly?.id || null,
         },
         icon: <Zap className="w-6 h-6" />,
         features: [
-          { name: "5,000 leads per month", included: true },
-          { name: "10 lists", included: true },
-          { name: "Advanced search filters", included: true },
-          { name: "Email support", included: true },
-          { name: "Advanced analytics", included: true },
-          { name: "Custom templates", included: true },
-          { name: "Priority support", included: false },
-          { name: "API access", included: false },
+          { name: "100 searches per month", included: true },
+          { name: "2500 results per month", included: true },
+          { name: "Instagram search", included: true },
+          { name: "Instagram URL imports feature", included: true },
+          { name: "Spotify artists search", included: true },
+          { name: "Spotify playlists search", included: true },
+          { name: "SoundCloud search", included: true },
+          { name: "TikTok search", included: true },
+          { name: "YouTube search", included: true },
+          { name: "Deep search", included: true },
+          { name: "Exports of results", included: true },
+          { name: "Priority support", included: true },
+          { name: "Direct message", included: false },
         ],
         popular: true,
       });
@@ -269,33 +401,43 @@ const PlanAndBillingPage = () => {
 
     if (monthlyPrices.length >= 2) {
       const proMonthly = monthlyPrices[1];
-      const proYearly = yearlyPrices.find((p: any) => 
-        Math.abs(getPriceForPlan(p, 'usd') - getPriceForPlan(proMonthly, 'usd') * 10) <= 
-        getPriceForPlan(proMonthly, 'usd') * 2
+      const proYearly = yearlyPrices.find(
+        (p: any) =>
+          Math.abs(
+            getPriceForPlan(p, "usd") - getPriceForPlan(proMonthly, "usd") * 10
+          ) <=
+          getPriceForPlan(proMonthly, "usd") * 2
       );
 
       dynamicPlans.push({
         id: "professional",
-        name: "Professional",
-        description: "For large organizations",
-        price: { 
-          monthly: getPriceForPlan(proMonthly, 'usd') / 100,
-          yearly: proYearly ? getPriceForPlan(proYearly, 'usd') / 100 : (getPriceForPlan(proMonthly, 'usd') * 10) / 100
+        name: "Professional", 
+        description: "For medium organizations",
+        price: {
+          monthly: getPriceForPlan(proMonthly, "usd") / 100,
+          yearly: proYearly
+            ? getPriceForPlan(proYearly, "usd") / 100
+            : (getPriceForPlan(proMonthly, "usd") * 10) / 100,
         },
-        priceId: { 
-          monthly: proMonthly.id, 
-          yearly: proYearly?.id || null
+        priceId: {
+          monthly: proMonthly.id,
+          yearly: proYearly?.id || null,
         },
         icon: <Crown className="w-6 h-6" />,
         features: [
-          { name: "25,000 leads per month", included: true },
-          { name: "50 lists", included: true },
-          { name: "Advanced search filters", included: true },
-          { name: "Email support", included: true },
-          { name: "Advanced analytics", included: true },
-          { name: "Custom templates", included: true },
+          { name: "1000 searches per month", included: true },
+          { name: "25000 results per month", included: true },
+          { name: "Instagram search", included: true },
+          { name: "Instagram URL imports feature", included: true },
+          { name: "Spotify artists search", included: true },
+          { name: "Spotify playlists search", included: true },
+          { name: "SoundCloud search", included: true },
+          { name: "TikTok search", included: true },
+          { name: "YouTube search", included: true },
+          { name: "Deep search", included: true },
+          { name: "Exports of results", included: true },
           { name: "Priority support", included: true },
-          { name: "API access", included: false },
+          { name: "Direct message", included: false },
         ],
         popular: false,
       });
@@ -303,32 +445,41 @@ const PlanAndBillingPage = () => {
 
     if (monthlyPrices.length >= 3) {
       const enterpriseMonthly = monthlyPrices[2];
-      const enterpriseYearly = yearlyPrices.find((p: any) => 
-        getPriceForPlan(p, 'usd') > getPriceForPlan(enterpriseMonthly, 'usd') * 8
+      const enterpriseYearly = yearlyPrices.find(
+        (p: any) =>
+          getPriceForPlan(p, "usd") >
+          getPriceForPlan(enterpriseMonthly, "usd") * 8
       );
 
       dynamicPlans.push({
-        id: "enterprise",
-        name: "Enterprise",
-        description: "For enterprise solutions",
-        price: { 
-          monthly: getPriceForPlan(enterpriseMonthly, 'usd') / 100,
-          yearly: enterpriseYearly ? getPriceForPlan(enterpriseYearly, 'usd') / 100 : (getPriceForPlan(enterpriseMonthly, 'usd') * 10) / 100
+        id: "business",
+        name: "Business",
+        description: "For large organizations", 
+        price: {
+          monthly: getPriceForPlan(enterpriseMonthly, "usd") / 100,
+          yearly: enterpriseYearly
+            ? getPriceForPlan(enterpriseYearly, "usd") / 100
+            : (getPriceForPlan(enterpriseMonthly, "usd") * 10) / 100,
         },
-        priceId: { 
-          monthly: enterpriseMonthly.id, 
-          yearly: enterpriseYearly?.id || null
+        priceId: {
+          monthly: enterpriseMonthly.id,
+          yearly: enterpriseYearly?.id || null,
         },
         icon: <Crown className="w-6 h-6" />,
         features: [
-          { name: "Unlimited leads", included: true },
-          { name: "Unlimited lists", included: true },
-          { name: "Advanced search filters", included: true },
-          { name: "Email support", included: true },
-          { name: "Advanced analytics", included: true },
-          { name: "Custom templates", included: true },
+          { name: "10000 searches per month", included: true },
+          { name: "100000 results per month", included: true },
+          { name: "Instagram search", included: true },
+          { name: "Instagram URL imports feature", included: true },
+          { name: "Spotify artists search", included: true },
+          { name: "Spotify playlists search", included: true },
+          { name: "SoundCloud search", included: true },
+          { name: "TikTok search", included: true },
+          { name: "YouTube search", included: true },
+          { name: "Deep search", included: true },
+          { name: "Exports of results", included: true },
           { name: "Priority support", included: true },
-          { name: "API access", included: true },
+          { name: "Direct message", included: true },
         ],
         popular: false,
       });
@@ -347,52 +498,91 @@ const PlanAndBillingPage = () => {
       priceId: { monthly: null, yearly: null },
       icon: <Star className="w-6 h-6" />,
       features: [
-        { name: "100 leads per month", included: true },
-        { name: "1 list", included: true },
-        { name: "Basic search filters", included: true },
-        { name: "Email support", included: true },
-        { name: "Advanced analytics", included: false },
-        { name: "Custom templates", included: false },
+        { name: "5 searches per month", included: true },
+        { name: "250 results per month", included: true },
+        { name: "Instagram search", included: true },
+        { name: "Instagram URL imports feature", included: true },
+        { name: "Spotify artists search", included: true },
+        { name: "Spotify playlists search", included: true },
+        { name: "SoundCloud search", included: true },
+        { name: "TikTok search", included: true },
+        { name: "YouTube search", included: true },
+        { name: "Deep search", included: false },
+        { name: "Exports of results", included: false },
         { name: "Priority support", included: false },
-        { name: "API access", included: false },
+        { name: "Direct message", included: false },
       ],
       popular: false,
     },
     {
-      id: "pro",
-      name: "Pro Plan",
+      id: "starter",
+      name: "Starter",
       description: "For growing businesses",
-      price: { monthly: 29, yearly: 290 },
+      price: { monthly: 25, yearly: 250 },
       priceId: { monthly: null, yearly: null },
       icon: <Zap className="w-6 h-6" />,
       features: [
-        { name: "5,000 leads per month", included: true },
-        { name: "10 lists", included: true },
-        { name: "Advanced search filters", included: true },
-        { name: "Email support", included: true },
-        { name: "Advanced analytics", included: true },
-        { name: "Custom templates", included: true },
-        { name: "Priority support", included: false },
-        { name: "API access", included: false },
+        { name: "100 searches per month", included: true },
+        { name: "2500 results per month", included: true },
+        { name: "Instagram search", included: true },
+        { name: "Instagram URL imports feature", included: true },
+        { name: "Spotify artists search", included: true },
+        { name: "Spotify playlists search", included: true },
+        { name: "SoundCloud search", included: true },
+        { name: "TikTok search", included: true },
+        { name: "YouTube search", included: true },
+        { name: "Deep search", included: true },
+        { name: "Exports of results", included: true },
+        { name: "Priority support", included: true },
+        { name: "Direct message", included: false },
       ],
       popular: true,
     },
     {
-      id: "enterprise",
-      name: "Enterprise",
-      description: "For large organizations",
-      price: { monthly: 99, yearly: 990 },
+      id: "professional",
+      name: "Professional",
+      description: "For medium organizations",
+      price: { monthly: 100, yearly: 1000 },
       priceId: { monthly: null, yearly: null },
       icon: <Crown className="w-6 h-6" />,
       features: [
-        { name: "Unlimited leads", included: true },
-        { name: "Unlimited lists", included: true },
-        { name: "Advanced search filters", included: true },
-        { name: "Email support", included: true },
-        { name: "Advanced analytics", included: true },
-        { name: "Custom templates", included: true },
+        { name: "1000 searches per month", included: true },
+        { name: "25000 results per month", included: true },
+        { name: "Instagram search", included: true },
+        { name: "Instagram URL imports feature", included: true },
+        { name: "Spotify artists search", included: true },
+        { name: "Spotify playlists search", included: true },
+        { name: "SoundCloud search", included: true },
+        { name: "TikTok search", included: true },
+        { name: "YouTube search", included: true },
+        { name: "Deep search", included: true },
+        { name: "Exports of results", included: true },
         { name: "Priority support", included: true },
-        { name: "API access", included: true },
+        { name: "Direct message", included: false },
+      ],
+      popular: false,
+    },
+    {
+      id: "business",
+      name: "Business",
+      description: "For large organizations",
+      price: { monthly: 199, yearly: 1990 },
+      priceId: { monthly: null, yearly: null },
+      icon: <Crown className="w-6 h-6" />,
+      features: [
+        { name: "10000 searches per month", included: true },
+        { name: "100000 results per month", included: true },
+        { name: "Instagram search", included: true },
+        { name: "Instagram URL imports feature", included: true },
+        { name: "Spotify artists search", included: true },
+        { name: "Spotify playlists search", included: true },
+        { name: "SoundCloud search", included: true },
+        { name: "TikTok search", included: true },
+        { name: "YouTube search", included: true },
+        { name: "Deep search", included: true },
+        { name: "Exports of results", included: true },
+        { name: "Priority support", included: true },
+        { name: "Direct message", included: true },
       ],
       popular: false,
     },
@@ -407,24 +597,8 @@ const PlanAndBillingPage = () => {
     { id: "payment-method", label: "Payment Method" },
   ];
 
-  const features = [
-    "10000 searches per month",
-    "Instagram search",
-    "Spotify artists search",
-    "SoundCloud search",
-    "YouTube search",
-    "Export of results",
-    "Direct message",
-  ];
-
-  const premiumFeatures = [
-    "10000 searches per month",
-    "Instagram URL imports feature",
-    "Spotify playlists search",
-    "TikTok search",
-    "Deep search",
-    "Priority support",
-  ];
+  // Get features from current plan dynamically
+ 
 
   const invoices = [
     {
@@ -441,24 +615,66 @@ const PlanAndBillingPage = () => {
     },
   ];
 
-const paymentMethods = [
-  {
-    id: 1,
-    type: "mastercard",
-    number: "559049******8091",
-    expiry: "Expiry 2027-07",
-    isDefault: true,
-  },
-  {
-    id: 2,
-    type: "visa",
-    number: "559049******8091",
-    expiry: "Expiry 2027-04",
-    isDefault: false,
-  },
-]
+  const paymentMethods = [
+    {
+      id: 1,
+      type: "mastercard",
+      number: "559049******8091",
+      expiry: "Expiry 2027-07",
+      isDefault: true,
+    },
+    {
+      id: 2,
+      type: "visa",
+      number: "559049******8091",
+      expiry: "Expiry 2027-04",
+      isDefault: false,
+    },
+  ];
 
-  const currentPlanData = activePlans.find((plan: any) => plan.id === (subscriptionData.length > 0 ? currentPlanFromAPI : currentPlan));
+  const currentPlanData = activePlans.find(
+    (plan: any) =>
+      plan.id === (subscriptionData.length > 0 ? currentPlan : "free")
+  );
+  
+  // Debug logging for plan features
+  console.log("=== PLAN FEATURES DEBUG ===");
+  console.log("subscriptionData.length:", subscriptionData.length);
+  console.log("currentPlan:", currentPlan);
+  console.log("Looking for plan ID:", subscriptionData.length > 0 ? currentPlan : "free");
+  console.log("activePlans:", activePlans.map(p => ({ id: p.id, name: p.name, featuresCount: p.features?.length })));
+  console.log("currentPlanData:", currentPlanData ? { id: currentPlanData.id, name: currentPlanData.name, featuresCount: currentPlanData.features?.length } : "NOT FOUND");
+  
+   const getCurrentPlanFeatures = () => {
+    if (!currentPlanData || !currentPlanData.features) {
+      console.log("No currentPlanData or features found, returning empty array");
+      return [];
+    }
+    console.log("currentPlanData.features:", currentPlanData.features);
+    return currentPlanData.features; // Return all features (both included and not included)
+  };
+
+  const currentPlanFeatures = getCurrentPlanFeatures();
+  console.log("currentPlanFeatures:", currentPlanFeatures);
+  
+  // Split features into two columns for better display
+  const midPoint = Math.ceil(currentPlanFeatures.length / 2);
+  const features = currentPlanFeatures.slice(0, midPoint);
+  const premiumFeatures = currentPlanFeatures.slice(midPoint);
+  console.log("features (first half):", features);
+  console.log("premiumFeatures (second half):", premiumFeatures);
+  console.log(
+    "- Looking for plan ID:",
+    subscriptionData.length > 0 ? currentPlan : "free"
+  );
+  console.log(
+    "- Available plan IDs:",
+    activePlans.map((p) => p.id)
+  );
+  console.log(
+    "- Found currentPlanData:",
+    currentPlanData ? currentPlanData.name : "NOT FOUND"
+  );
 
   if (isLoading) {
     return (
@@ -521,7 +737,9 @@ const paymentMethods = [
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span className="text-sm text-blue-800">Loading latest pricing...</span>
+                  <span className="text-sm text-blue-800">
+                    Loading latest pricing...
+                  </span>
                 </div>
               </div>
             )}
@@ -575,10 +793,23 @@ const paymentMethods = [
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                           <div className="flex-1">
                             <div className="px-4 py-2 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg text-[#344054]">
-                              {subscriptionData.length > 0 && processedSubscriptions.find((sub: any) => sub.status === 'Active')?.title || 'Free Plan'}
+                              {subscriptionData.length > 0
+                                ? processedSubscriptions
+                                    .filter(
+                                      (sub: any) => sub.status === "Active"
+                                    )
+                                    .sort(
+                                      (a: any, b: any) => b.created - a.created
+                                    )[0]?.title || "Free Plan"
+                                : "Free Plan"}
                             </div>
                           </div>
-                          <Button className="bg-[#7f56d9] hover:bg-[#6941c6] text-white px-6 cursor-pointer" onClick={() => {router.push("/upgrade-plan")}}>
+                          <Button
+                            className="bg-[#7f56d9] hover:bg-[#6941c6] text-white px-6 cursor-pointer"
+                            onClick={() => {
+                              router.push("/upgrade-plan");
+                            }}
+                          >
                             Change Plan
                           </Button>
                         </div>
@@ -589,7 +820,13 @@ const paymentMethods = [
                           Credit Renewal date
                         </label>
                         <div className="px-4 py-2 bg-[#f9fafb] border border-[#d0d5dd] rounded-lg text-[#344054]">
-                          {subscriptionData.length > 0 && processedSubscriptions.find((sub: any) => sub.status === 'Active')?.endPeriod || 'N/A'}
+                          {subscriptionData.length > 0
+                            ? processedSubscriptions
+                                .filter((sub: any) => sub.status === "Active")
+                                .sort(
+                                  (a: any, b: any) => b.created - a.created
+                                )[0]?.endPeriod || "N/A"
+                            : "N/A"}
                         </div>
                       </div>
                     </CardContent>
@@ -639,7 +876,13 @@ const paymentMethods = [
                         </Badge>
                       </div>
                       <CardTitle className="text-2xl font-bold text-[#101828]">
-                        {subscriptionData.length > 0 && processedSubscriptions.find((sub: any) => sub.status === 'Active')?.title || 'Free Plan'}
+                        {subscriptionData.length > 0
+                          ? processedSubscriptions
+                              .filter((sub: any) => sub.status === "Active")
+                              .sort(
+                                (a: any, b: any) => b.created - a.created
+                              )[0]?.title || "Free Plan"
+                          : "Free Plan"}
                       </CardTitle>
                       <p className="text-sm text-[#667085]">
                         Best suits for medium size businesses
@@ -648,20 +891,65 @@ const paymentMethods = [
                     <CardContent className="space-y-6">
                       <div className="text-center">
                         <div className="text-4xl font-bold text-[#101828]">
-                          {loadingPrices ? (
+                          {loadingPrices || loadingSubscriptions ? (
                             <div className="animate-pulse bg-gray-200 h-10 w-20 mx-auto rounded"></div>
                           ) : (
                             <>
-                              ${currentPlanData?.price[billingCycle]}
+                              {subscriptionData.length > 0
+                                ? (() => {
+                                    const activeSubscription =
+                                      processedSubscriptions
+                                        .filter(
+                                          (sub: any) => sub.status === "Active"
+                                        )
+                                        .sort(
+                                          (a: any, b: any) =>
+                                            b.created - a.created
+                                        )[0];
+                                    return activeSubscription?.price || "$0";
+                                  })()
+                                : "$0"}
                               <span className="text-lg font-normal text-[#667085]">
-                                /{billingCycle === 'monthly' ? 'month' : 'year'}
+                                {subscriptionData.length > 0
+                                  ? (() => {
+                                      const activeSubscription =
+                                        processedSubscriptions
+                                          .filter(
+                                            (sub: any) =>
+                                              sub.status === "Active"
+                                          )
+                                          .sort(
+                                            (a: any, b: any) =>
+                                              b.created - a.created
+                                          )[0];
+                                      return activeSubscription?.recurring ===
+                                        "Annually"
+                                        ? "/year"
+                                        : "/month";
+                                    })()
+                                  : "/month"}
                               </span>
                             </>
                           )}
                         </div>
-                        {!loadingPrices && (
+                        {!loadingPrices && !loadingSubscriptions && (
                           <p className="text-sm text-[#667085] mt-1">
-                            Bill {billingCycle === 'monthly' ? 'Monthly' : 'Annually'}
+                            {subscriptionData.length > 0
+                              ? (() => {
+                                  const activeSubscription =
+                                    processedSubscriptions
+                                      .filter(
+                                        (sub: any) => sub.status === "Active"
+                                      )
+                                      .sort(
+                                        (a: any, b: any) =>
+                                          b.created - a.created
+                                      )[0];
+                                  return `Bill ${
+                                    activeSubscription?.recurring || "Monthly"
+                                  }`;
+                                })()
+                              : "Free Plan"}
                           </p>
                         )}
                       </div>
@@ -673,11 +961,21 @@ const paymentMethods = [
                               key={index}
                               className="flex items-center space-x-3"
                             >
-                              <div className="flex-shrink-0 w-5 h-5 bg-[#17b26a] rounded-full flex items-center justify-center">
-                                <Check className="h-3 w-3 text-white" />
+                              <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                                feature.included 
+                                  ? "bg-[#17b26a]" 
+                                  : "bg-[#f2f4f7] border border-[#d0d5dd]"
+                              }`}>
+                                {feature.included ? (
+                                  <Check className="h-3 w-3 text-white" />
+                                ) : (
+                                  <X className="h-3 w-3 text-[#667085]" />
+                                )}
                               </div>
-                              <span className="text-sm text-[#344054]">
-                                {feature}
+                              <span className={`text-sm ${
+                                feature.included ? "text-[#344054]" : "text-[#667085]"
+                              }`}>
+                                {feature.name}
                               </span>
                             </div>
                           ))}
@@ -689,18 +987,33 @@ const paymentMethods = [
                               key={index}
                               className="flex items-center space-x-3"
                             >
-                              <div className="flex-shrink-0 w-5 h-5 bg-[#17b26a] rounded-full flex items-center justify-center">
-                                <Check className="h-3 w-3 text-white" />
+                              <div className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${
+                                feature.included 
+                                  ? "bg-[#17b26a]" 
+                                  : "bg-[#f2f4f7] border border-[#d0d5dd]"
+                              }`}>
+                                {feature.included ? (
+                                  <Check className="h-3 w-3 text-white" />
+                                ) : (
+                                  <X className="h-3 w-3 text-[#667085]" />
+                                )}
                               </div>
-                              <span className="text-sm text-[#344054]">
-                                {feature}
+                              <span className={`text-sm ${
+                                feature.included ? "text-[#344054]" : "text-[#667085]"
+                              }`}>
+                                {feature.name}
                               </span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <Button onClick={() => {router.push("/upgrade-plan")}} className="cursor-pointer w-full bg-[#7f56d9] hover:bg-[#6941c6] text-white py-3">
+                      <Button
+                        onClick={() => {
+                          router.push("/upgrade-plan");
+                        }}
+                        className="cursor-pointer w-full bg-[#7f56d9] hover:bg-[#6941c6] text-white py-3"
+                      >
                         Upgrade Plan
                       </Button>
                     </CardContent>
@@ -713,7 +1026,9 @@ const paymentMethods = [
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-center gap-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                  <span className="text-sm text-blue-800">Loading subscriptions...</span>
+                  <span className="text-sm text-blue-800">
+                    Loading subscriptions...
+                  </span>
                 </div>
               </div>
             )}
@@ -727,7 +1042,7 @@ const paymentMethods = [
                 </div>
               </div>
             )} */}
-            
+
             {activeTab === "subscriptions" && (
               <div>
                 <Card>
@@ -801,10 +1116,12 @@ const paymentMethods = [
                     ) : !loadingSubscriptions ? (
                       <div className="text-center py-8">
                         <div className="text-[#667085] text-sm">
-                          No subscriptions found. 
-                          <Button 
-                            onClick={() => {router.push("/upgrade-plan")}} 
-                            variant="link" 
+                          No subscriptions found.
+                          <Button
+                            onClick={() => {
+                              router.push("/upgrade-plan");
+                            }}
+                            variant="link"
                             className="text-[#7f56d9] p-0 ml-1 h-auto"
                           >
                             Subscribe to a plan

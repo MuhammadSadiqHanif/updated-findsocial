@@ -72,7 +72,7 @@ export function ResultsLimitInput({
           disabled={!searchQuery.trim() || isLoading}
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4" />
+            <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <ArrowUp className="w-4 h-4" />
           )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Search,
@@ -85,6 +86,7 @@ interface LeadsResponse {
 }
 
 export function LeadsContent({ userId }: { userId: string | null }) {
+  const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -121,7 +123,9 @@ export function LeadsContent({ userId }: { userId: string | null }) {
   const [loading, setLoading] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [searchQuery, setSearchQuery] = useState("");
+  // Prefill search from query param
+  const initialSearch = searchParams?.get("search") || "";
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [isSearching, setIsSearching] = useState(false);
   
   const { toast } = useToast();
@@ -211,7 +215,7 @@ export function LeadsContent({ userId }: { userId: string | null }) {
     } else {
       fetchLeads(currentPage, itemsPerPage, appliedPlatforms);
     }
-  }, [userId, currentPage, itemsPerPage, appliedPlatforms]);
+  }, [userId, currentPage, itemsPerPage, appliedPlatforms, searchQuery]);
 
   // Debounced search effect
   useEffect(() => {

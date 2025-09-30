@@ -72,8 +72,14 @@ export function LoginForm() {
         }
         return
       }
-      // Redirect to dashboard on success
-      router.push('/Dashboard')
+      // On successful login, check onboarding flag
+      if (typeof window !== 'undefined') {
+        if (!localStorage.getItem('onboardingComplete')) {
+          router.push('/onboarding');
+        } else {
+          router.push('/Dashboard');
+        }
+      }
     })
   }
 

@@ -41,9 +41,13 @@ export default function AuthenticationPage() {
         console.log('Authentication successful')
         setStatus('success')
         
-        // Redirect to dashboard after a brief success message
+        // Redirect to onboarding if not completed, else dashboard
         setTimeout(() => {
-          router.push('/Dashboard')
+          if (!localStorage.getItem('onboardingComplete')) {
+            router.push('/onboarding');
+          } else {
+            router.push('/Dashboard');
+          }
         }, 1500)
       } else {
         // Handle authentication error
